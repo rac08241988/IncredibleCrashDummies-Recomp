@@ -1,45 +1,62 @@
-# The Incredible Crash Dummies Recompiled (SNES) — WORK IN PROGRESS
+# The Incredible Crash Dummies Recompiled (SNES)
 
 > **Shaders only work on the Vulkan and OpenGL renderers.**
 >
 > This project ships no game code or ROM data. You supply your own cartridge dump.
 
-**Status: early WIP, no release yet.** Started Nov 1 2026 from the
-[Demon's Crest SNESRecomp](https://github.com/rac08241988/DemonsCrestSNESRecomp)
-v1.1.0 template on the [snesrecomp](https://github.com/magnopaz/snesrecomp)
-framework. The Windows build boots to the title screen and into the first
-level ("Dummy Parking") under wine; it has not been played through yet.
+An unofficial Windows PC port of **The Incredible Crash Dummies** (SNES, USA),
+built on the [snesrecomp](https://github.com/magnopaz/snesrecomp) framework
+from the [Demon's Crest SNESRecomp](https://github.com/rac08241988/DemonsCrestSNESRecomp)
+v1.1.0 template. Early release (v0.1.1): it boots, plays, and has the full
+Options menu, but see [Known limitations](#known-limitations).
 
 ![Gameplay](docs/screenshots/gameplay.png)
 
-## What works so far
+## Features
 
-- ROM check: `Incredible Crash Dummies, The (USA)`, LoROM FastROM, 1 MB, no
-  SRAM (the game uses passwords), header checksum valid.
-- Recompiler runs on the ROM (`tools/regen.sh`). The seed is LLE-first:
-  every routine still runs on the framework's interpreter tier; no
-  ahead-of-time functions are promoted yet.
-- Windows x64 build (MinGW cross-compile), boots to the title screen and
-  gameplay.
-- Options side panel from the template (Esc / F12 / pad Guide) with
-  Crash Dummies colours (crash-test yellow, safety-orange edge): tabs Video,
-  Display, Audio, Controls, Shaders, System; Apply button plus F5 / pad X or
-  Start; keyboard / Xbox / PlayStation hint bar; Background input (default
-  Off); 120 Hz motion option; live shader preview.
-- No Widescreen option: this game does not support it (the Demon's Crest
-  widescreen hooks were game-specific and were removed).
+- Native Windows x64 exe, built on your own PC from your own ROM.
+- One-click builder: pick your ROM, it builds the game and launches it.
+- In-game Options side panel (Esc / F12 / pad Guide): Video, Display,
+  Audio, Controls, Shaders and System tabs, with a live preview and an Apply
+  button. Keyboard, Xbox and PlayStation hint bar.
+- Full shader set: the complete libretro slang preset pack (258 entries) run
+  through librashader, plus the libretro GLSL presets. CRT, scanline, LCD,
+  smoothing and xBR/xBRZ scalers. **Shaders only work on Vulkan and OpenGL.**
+- 120 Hz motion option, save states (10 quick slots plus a browser), rewind,
+  turbo, recording, fullscreen and window scaling.
+- Xbox / XInput controller support with a positional SNES layout.
 
-## Not done yet
+## Play on Windows (no coding needed)
 
-- Playtesting all levels, AOT promotion of hot routines, save-state restore
-  check, shader set check on Vulkan, setup exe / one-click builder and
-  release zip, save import and `uninstall.bat` on real Windows.
+1. Download `IncredibleCrashDummies-SNESRecomp-windows-x64-v0.1.1.zip` from the
+   [Releases](https://github.com/rac08241988/IncredibleCrashDummies-Recomp/releases)
+   page and unzip it anywhere.
+2. Open `IncredibleCrashDummiesSNESRecomp.exe`.
+3. Click **Browse For ROM** and pick your own dump:
+   `Incredible Crash Dummies, The (U) [!].smc`. Headered (512-byte copier
+   header) and headerless `.smc`/`.sfc` files both work; the header is
+   stripped before the check.
+4. Let it build. The first time it downloads a portable compiler and builds
+   the game on your PC, which takes a few minutes.
+5. Click **Play**. Next time, just open the exe.
+
+The zip has no game code and no ROM. It holds the setup exe, its DLLs, the
+shaders, the prebuilt `snesrecomp-analyze.exe` (so no Rust install is needed)
+and the build tools/configs. The first run downloads a portable toolchain
+(about 800 MB) into `toolchain\` beside the exe and builds the game into
+`build\`; after that, opening the setup exe hands off to the built game. The
+zip root is flat with a single exe, so launchers such as Quiver Launcher pick
+it up automatically.
+
+> **Shaders work on Vulkan and OpenGL renderers only.** New configs default to
+> OpenGL. On another renderer (Direct3D, software) the Shader row says so
+> instead of applying one; switch Video > Renderer to OpenGL or Vulkan.
 
 ## Controls & Shortcuts
 
-These are the default bindings from the code and `config.ini` (`[KeyMap]`).
-They are the template defaults; this WIP build has not re-verified each one. "View"
-is the Xbox View/Back button, which is SNES Select.
+Xbox layout. In menus, **A** confirms and **B** goes back. **Esc**, **F12**
+or the pad **Guide** button opens the Options menu. "View" is the Xbox
+View/Back button, which is SNES Select.
 
 | Action | Xbox controller | Keyboard |
 |---|---|---|
@@ -48,14 +65,12 @@ is the Xbox View/Back button, which is SNES Select.
 | SNES L / R | LB / RB | C / V |
 | Start / Select | Menu (Start) / View (Select) | Enter / Right Shift |
 | Options menu (pauses the game) | Guide | F12 or Esc |
-| Menu: move / change / accept / back | D-pad / Left-Right / A / B | Arrows / Left-Right / Enter or Space / Backspace or Esc |
+| Menu: move / change / confirm / back | D-pad / Left-Right / A / B | Arrows / Left-Right / Enter or Space / Backspace or Esc |
 | Menu: previous / next tab | LB / RB | Q / E (or Tab, PgUp / PgDn) |
 | Menu: Apply | X or Start | F5 (or the Apply button) |
 | Save-state browser | hold View (Select) + press RB | F11 |
-| Save-state browser: load / save / back | B / Y / A | X / S / Esc or Backspace (1-9, 0, -, = pick a slot) |
 | Quick load / quick save slot 1-10 | - | F1-F10 / Shift+F1-F10 |
 | Rewind | hold View (Select) + press R3 | Shift+F12 |
-| Rewind: scrub / resume here / cancel | Left-Right / B / A | Left-Right / Enter or Space / Esc |
 | Open the launcher | hold View (Select) + press L3 | Ctrl+L |
 | Fullscreen | - | Alt+Enter |
 | Reset | - | Ctrl+R |
@@ -66,51 +81,95 @@ is the Xbox View/Back button, which is SNES Select.
 | Show performance / toggle renderer | - | F / R |
 | Start/stop a recording | - | Alt+R |
 
-The default pad map is positional: SNES B = Xbox A, SNES Y = Xbox X,
-SNES A = Xbox B, SNES X = Xbox Y. The Options menu uses Xbox A to accept and
-Xbox B to go back, and reads the pad only while it is open; gameplay input is
-never re-routed.
+The gameplay pad map is positional: SNES B = Xbox A, SNES Y = Xbox X,
+SNES A = Xbox B, SNES X = Xbox Y. The Options menu reads the pad only while
+it is open; gameplay input is never re-routed.
 
-## Build (from Linux, Windows exe)
+## Shaders
+
+In game: Esc / F12 / Guide, then **Shaders**. Left/Right picks a preset (it
+previews live behind the panel) and Apply keeps it. The choice is saved and
+defaults to Off.
+
+- The full libretro `slang-shaders` preset set (258 entries: 12 audited
+  presets first, then every preset in `presets/`), compiled at runtime by
+  librashader on the Vulkan and OpenGL renderers.
+- The libretro `glsl-shaders` `.glslp` presets for the OpenGL renderer.
+
+**Shaders only work on Vulkan and OpenGL.** See [`SHADERS.md`](SHADERS.md) for
+the pinned commits and the license audit.
+
+## Tested On
+
+The project owner's PC:
+
+- CPU: AMD Ryzen 7 5800X3D
+- GPU: NVIDIA GeForce RTX 3070 Ti (8 GB)
+- RAM: 32 GB dual-channel
+- Storage: NVMe SSD
+- OS: Windows and AtlasOS
+- Renderers: Vulkan and OpenGL
+
+## Known limitations
+
+- **Runs on the interpreter for now.** No native (ahead-of-time) code is
+  generated yet: every routine runs on the framework's interpreter tier. It
+  plays, but it is not the fast path yet.
+- **No widescreen yet.** It is planned.
+- **No battery save.** The cartridge has no SRAM (the game uses passwords),
+  so there is no in-game save to keep; use the passwords or save states.
+  Save states come from the template and have not been fully re-tested here.
+- Not played through to the end yet.
+
+## Build from source (Linux host, Windows exe)
 
 ```sh
-git clone https://github.com/rac08241988/IncredibleCrashDummies-SNESRecomp
-cd IncredibleCrashDummies-SNESRecomp
-scripts/setup.sh --rom "/path/to/Incredible Crash Dummies, The (USA).sfc"
+git clone --recursive https://github.com/rac08241988/IncredibleCrashDummies-Recomp
+cd IncredibleCrashDummies-Recomp
+scripts/setup.sh --rom "/path/to/Incredible Crash Dummies, The (U) [!].smc"
 cmake -S . -B build-win -G Ninja -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/mingw-w64.cmake
 cmake --build build-win -j
 ```
 
+`src/gen/` and `recomp/funcs.h` are generated from your ROM and are never
+committed.
+
 ## ROM identity
 
 | | |
 |---|---|
-| File | `Incredible Crash Dummies, The (USA).sfc` |
+| File | `Incredible Crash Dummies, The (U) [!].smc` (headered or headerless) |
 | Header title | `INCRED. CRASH DUMMIES` |
 | Mapping | LoROM (FastROM), 1 MB, no SRAM |
 | CRC32 | `0b6209ba` |
 | SHA-1 | `8fb4dc371c0e44fe362b23b5fec464288e3cc5ec` |
 | SHA-256 | `0415adfe80977485f84cdffaaa79f18c91c004c7dba202b4cf9a94eb11adeada` |
 
-A 512-byte copier header is stripped before the check.
+The hashes are of the headerless ROM; a 512-byte copier header is stripped
+before the check.
 
-## Tested On
+## Credits
 
-The project owner's PC:
-
-- CPU: AMD Ryzen 7 5800X3D (8 cores / 16 threads, 96 MB 3D V-Cache)
-- GPU: NVIDIA GeForce RTX 3070 Ti (8 GB GDDR6X)
-- RAM: 32 GB dual-channel
-- Storage: M.2 NVMe SSD
-- OS: Windows and AtlasOS
-- Renderers tested: Vulkan and OpenGL
-
-(WIP: so far only tested under wine on Linux.)
+- [snesrecomp](https://github.com/magnopaz/snesrecomp) (upstream:
+  [RetroPortingToolKit/snesrecomp](https://github.com/RetroPortingToolKit/snesrecomp))
+  by Matthew Stanley and contributors: the SNES static-recompilation framework.
+- [recomp-ui](https://github.com/magnopaz/recomp-ui): the launcher.
+- [Demon's Crest SNESRecomp](https://github.com/magnopaz/DemonsCrestSNESRecomp)
+  by Magno Paz, and this account's
+  [fork](https://github.com/rac08241988/DemonsCrestSNESRecomp): the template
+  this port started from.
+- libretro slang/GLSL shaders and librashader.
 
 ## License
 
-This project's own source is under the MIT license in [`LICENSE`](LICENSE).
-The framework and launcher carry their own terms — see `snesrecomp/LICENSE`,
-`snesrecomp/THIRD_PARTY_ATTRIBUTION.md` and `recomp-ui/LICENSE`. Neither
-covers the game data, which is not distributed here.
+Same terms as the Demon's Crest fork. This project's own source is under the
+MIT license in [`LICENSE`](LICENSE); the options menu and shader parts ported
+from the Super Ryu World 1 port and the snesrecomp patch are PolyForm
+Noncommercial 1.0.0 (see [`NOTICE.md`](NOTICE.md)). The framework and launcher
+carry their own terms: see `snesrecomp/LICENSE`,
+`snesrecomp/THIRD_PARTY_ATTRIBUTION.md` and `recomp-ui/LICENSE`. Because
+snesrecomp is PolyForm Noncommercial, binaries are for non-commercial use
+only. None of this covers the game, which is not distributed here. The
+Incredible Crash Dummies is a trademark of its respective owners; this project
+is not affiliated with them.

@@ -1,6 +1,7 @@
-# Notices (shaders-120hz fork)
+# Notices
 
-This fork of magnopaz/IncredibleCrashDummiesSNESRecomp (MIT, Copyright (c) 2026 Magno Paz)
+This port starts from the Demon's Crest SNESRecomp template
+(magnopaz/DemonsCrestSNESRecomp, MIT, Copyright (c) 2026 Magno Paz) and
 adds an in-game options menu, RetroArch GLSL shader presets and 120 Hz
 presentation. Licensing of the pieces:
 
@@ -22,7 +23,7 @@ presentation. Licensing of the pieces:
   `scripts/fetch_shaders.sh` and is not stored in this repository. Most
   shaders are GPL (v2 or later / v3); each file carries its own license header.
   Binary packages ship them unmodified in `shaders/` with that header intact.
-- The Incredible Crash Dummies is (c) Capcom. No ROM, generated C, or other ROM-derived data
+- The Incredible Crash Dummies is the property of its respective owners. No ROM, generated C, or other ROM-derived data
   is distributed in this repository; everyone generates code from their own
   legally-owned cartridge dump.
 

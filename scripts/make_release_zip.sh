@@ -44,5 +44,14 @@ if [ "$(find "$SRC" -maxdepth 1 -iname '*.exe' | wc -l)" -ne 1 ]; then
 
 OUT="$ROOT/dist/IncredibleCrashDummies-SNESRecomp-windows-x64-v${VERSION}.zip"
 rm -f "$OUT"
-( cd "$SRC" && zip -qr -X "$OUT" . )
+python3 - "$SRC" "$OUT" <<'PY'
+import os, sys, zipfile
+src, out = sys.argv[1], sys.argv[2]
+with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+    for root, dirs, files in os.walk(src):
+        dirs.sort()
+        for f in sorted(files):
+            full = os.path.join(root, f)
+            z.write(full, os.path.relpath(full, src))
+PY
 echo "wrote $OUT ($(du -h "$OUT" | cut -f1))"

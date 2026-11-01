@@ -985,13 +985,13 @@ static float draw_glyph(RpCanvas *c, int style, int which, float x, float cy, fl
     const char *t = style == 1 ? (which == G_LB ? "L1" : "R1")
                   : style == 2 ? (which == G_LB ? "L" : "R") : (which == G_LB ? "LB" : "RB");
     float w = rp_text_width(RP_BOLD, 14 * s, t) + 16 * s;
-    rp_fill_rrect(c, x, cy - r * .85f, w, r * 1.7f, 7 * s, 0xFF3A3346u);
+    rp_fill_rrect(c, x, cy - r * .85f, w, r * 1.7f, 7 * s, 0xFF3D3826u);
     rp_text_center(c, RP_BOLD, 14 * s, x, cy - r * .85f, w, r * 1.7f, t, C_TEXT);
     return w;
   }
   float cx = x + r;
   if (style == 1) {
-    rp_fill_circle(c, cx, cy, r, 0xFF2B2635u);
+    rp_fill_circle(c, cx, cy, r, 0xFF2E2A1Eu);
     float k = r * .45f;
     if (which == G_SOUTH) {
       rp_line(c, cx - k, cy - k, cx + k, cy + k, 2.4f * s, 0xFF7FA8FFu);
@@ -1007,7 +1007,7 @@ static float draw_glyph(RpCanvas *c, int style, int which, float x, float cy, fl
   uint32_t col;
   if (style == 2) {   /* Nintendo labels by position */
     t = which == G_SOUTH ? "B" : which == G_EAST ? "A" : "Y";
-    col = 0xFF5A5466u;
+    col = 0xFF5E5844u;
   } else {
     t = which == G_SOUTH ? "A" : which == G_EAST ? "B" : "X";
     col = which == G_SOUTH ? 0xFF3FA34Du : which == G_EAST ? 0xFFD0433Fu : 0xFF3B76D6u;
@@ -1021,7 +1021,7 @@ static float draw_keycap(RpCanvas *c, const char *t, float x, float cy, float s)
   float h = 24 * s;
   float w = rp_text_width(RP_BOLD, 13 * s, t) + 14 * s;
   if (w < h) w = h;
-  rp_fill_rrect(c, x, cy - h / 2, w, h, 6 * s, 0xFF3A3346u);
+  rp_fill_rrect(c, x, cy - h / 2, w, h, 6 * s, 0xFF3D3826u);
   rp_stroke_rrect(c, x, cy - h / 2, w, h, 6 * s, 1.f, 0x40FFFFFFu);
   rp_text_center(c, RP_BOLD, 13 * s, x, cy - h / 2, w, h, t, C_TEXT);
   return w;
@@ -1115,7 +1115,7 @@ static void draw_row(RpCanvas *c, Row *r, float x, float y, float w, float h, fl
   float ty = y + (h - fs) / 2;
   float cy = y + h / 2;
   bool changed = r->type != R_ACTION && r->pend != r->cur;
-  uint32_t lc = focus ? C_TEXT : 0xFFE0D8E8u;
+  uint32_t lc = focus ? C_TEXT : 0xFFEDE4CCu;
   float right = x + w;
   float vw = 0;   /* width taken by the value on the right */
   char buf[64];
@@ -1131,7 +1131,7 @@ static void draw_row(RpCanvas *c, Row *r, float x, float y, float w, float h, fl
     float frac = r->max > r->min ? (float)(r->pend - r->min) / (r->max - r->min) : 0;
     rp_fill_rrect(c, tx, cy - 3 * s, tw, 6 * s, 3 * s, 0x40FFFFFFu);
     rp_fill_rrect(c, tx, cy - 3 * s, tw * frac > 6 * s ? tw * frac : 6 * s, 6 * s, 3 * s, C_ACCENT);
-    rp_fill_circle(c, tx + tw * frac, cy, 9 * s, focus ? 0xFFFFFFFFu : 0xFFE6DDF2u);
+    rp_fill_circle(c, tx + tw * frac, cy, 9 * s, focus ? 0xFFFFFFFFu : 0xFFF2EAD6u);
     float numw = rp_text_width(RP_BOLD, fs * .9f, buf);
     rp_text(c, RP_BOLD, fs * .9f, tx - 14 * s - numw, y + (h - fs * .9f) / 2, buf,
             changed ? C_ACCENT2 : C_DIM, 0);
@@ -1144,7 +1144,7 @@ static void draw_row(RpCanvas *c, Row *r, float x, float y, float w, float h, fl
     float aw = 16 * s;
     float tw = rp_text_width(RP_BOLD, fs * .95f, v);
     if (tw > maxv) tw = maxv;
-    uint32_t vc = changed ? 0xFFE7A1FFu : (focus ? C_TEXT : C_DIM);
+    uint32_t vc = changed ? 0xFFFFD27Au : (focus ? C_TEXT : C_DIM);
     if (r->type == R_SHADER) {
       rp_text(c, RP_BOLD, fs * .95f, right - aw - tw - 6 * s, y + (h - fs * .95f) / 2, v, vc, maxv);
       float ax = right - aw * .6f;
@@ -1280,7 +1280,7 @@ static void render_panel(const SnesModalLayerView *v) {
       float fsz = 19 * s;
       const char *lab = g_labels[k];
       rp_text(c, f ? RP_BOLD : RP_REGULAR, fsz, x + 4 * s, ry + (lh - fsz) / 2, lab,
-              f ? C_TEXT : (shader_live_ok(k) ? 0xFFDCD3E6u : 0xFF8A8094u), w - 80 * s);
+              f ? C_TEXT : (shader_live_ok(k) ? 0xFFE8DEC4u : 0xFF948A70u), w - 80 * s);
       if (chosen) rp_fill_circle(c, x + w - 10 * s, ry + lh / 2, 5 * s, C_ACCENT2);
       if (live && !chosen) rp_stroke_circle(c, x + w - 10 * s, ry + lh / 2, 5 * s, 1.5f * s, C_ACCENT);
     }
@@ -1332,7 +1332,7 @@ static void render_panel(const SnesModalLayerView *v) {
     for (int i = 0; i < g_nrows; i++)
       if (g_rows[i].tab == g_tab && g_rows[i].type == R_NOTE && ry + rh <= rows_bot + 1) {
         rp_fill_rrect(c, x, ry + 8 * s, w, rh - 16 * s, 10 * s, rp_alpha(C_ACCENT2, .16f));
-        rp_text(c, RP_REGULAR, 16 * s, x + 12 * s, ry + (rh - 16 * s) / 2, g_rows[i].label, 0xFFF0C9D2u, w - 24 * s);
+        rp_text(c, RP_REGULAR, 16 * s, x + 12 * s, ry + (rh - 16 * s) / 2, g_rows[i].label, 0xFFFFDDB8u, w - 24 * s);
         ry += rh;
       }
     rp_canvas_noclip(c);
@@ -1356,7 +1356,7 @@ static void render_panel(const SnesModalLayerView *v) {
     else if (pc) snprintf(st, sizeof(st), "%d change%s not applied", pc, pc == 1 ? "" : "s");
     else st[0] = 0;
     if (st[0]) rp_text(c, RP_BOLD, desc_fs, x, desc_y + desc_fs * 1.3f * 2, st,
-                       pc && !(g_status[0] && now_s() - g_status_at < 6.0) ? 0xFFE7A1FFu : 0xFFF0C9D2u, w);
+                       pc && !(g_status[0] && now_s() - g_status_at < 6.0) ? 0xFFFFD27Au : 0xFFFFDDB8u, w);
   }
   /* Apply */
   {

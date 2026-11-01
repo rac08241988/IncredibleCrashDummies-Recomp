@@ -65,7 +65,7 @@ def main() -> int:
 
     merged: dict[tuple, dict] = {}
     identity = None
-    rom_title = "demonscrest"
+    rom_title = "crashdummies"
     roms, modules, mappers = set(), set(), set()
     max_sequence = 0
 

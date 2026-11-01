@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate src/gen/*.c for Demon's Crest from a verified ROM.
+# Regenerate src/gen/*.c for The Incredible Crash Dummies from a verified ROM.
 #
 # Generated C is derived from copyrighted ROM data and is never committed;
 # every developer regenerates from their own copy. The ROM digests come from
@@ -66,12 +66,12 @@ EXPECTED_SHA256="${SNESRECOMP_EXPECTED_SHA256:-$("$PYTHON" "$IDENTITY" "$ROOT/ro
 # The framework owns the search: --rom, then SNESRECOMP_ROM, then a known
 # name at the root, then rom.cfg (the path the setup wizard recorded).
 RESOLVE=(resolve-rom --project-root "$ROOT"
-         --name "Demon's Crest (USA).sfc" --name "demonscrest.sfc" --name "demonscrest.smc")
+         --name "Incredible Crash Dummies, The (USA).sfc" --name "crashdummies.sfc" --name "crashdummies.smc")
 if [ -n "$ROM" ]; then RESOLVE+=(--rom "$ROM"); fi
 if ! ROM=$("$PYTHON" "$CLI" "${RESOLVE[@]}"); then
-  echo "regen.sh: pass --rom /path/to/Demon's Crest (USA).sfc, set SNESRECOMP_ROM, put it" >&2
+  echo "regen.sh: pass --rom /path/to/Incredible Crash Dummies, The (USA).sfc, set SNESRECOMP_ROM, put it" >&2
   echo "          at the repo root, or record its path in rom.cfg. You must" >&2
-  echo "          legally own a copy of Demon's Crest." >&2
+  echo "          legally own a copy of The Incredible Crash Dummies." >&2
   exit 1
 fi
 ROM=${ROM%$'\r'}  # Windows Python ends lines with CRLF
@@ -105,12 +105,6 @@ fi
 
 echo "== Generating src/gen =="
 "$PYTHON" "$CLI" generate "${GEN_ARGS[@]}"
-
-# Fase 4 widescreen hooks: widen the object loop's cull window in the freshly
-# generated bank $82 code (idempotent; the build also runs it as a build step).
-echo
-echo "== Injecting widescreen hooks =="
-"$PYTHON" tools/dc_apply_widescreen_hooks.py --gen-dir src/gen
 
 echo
 echo "Done. Build with:"

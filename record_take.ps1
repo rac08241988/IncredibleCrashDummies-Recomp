@@ -10,11 +10,11 @@
 $ErrorActionPreference = "Stop"
 
 $root = $PSScriptRoot
-$exe = Join-Path $root "build\DemonsCrestSNESRecomp.exe"
-$rom = "M:\Opencode\roms\Demon's Crest (USA).sfc"
+$exe = Join-Path $root "build\IncredibleCrashDummiesSNESRecomp.exe"
+$rom = "M:\Opencode\roms\Incredible Crash Dummies, The (USA).sfc"
 
 if (-not (Test-Path $exe)) {
-    $exe = Join-Path $root "build-trace\DemonsCrestSNESRecomp.exe"
+    $exe = Join-Path $root "build-trace\IncredibleCrashDummiesSNESRecomp.exe"
 }
 if (-not (Test-Path $rom)) {
     throw "ROM not found: $rom  (pass another path by editing `$rom in this script)"

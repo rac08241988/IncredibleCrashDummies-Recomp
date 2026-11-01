@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the GitHub Release asset (Quiver Launcher layout):
-#   dist/DemonsCrest-SNESRecomp-windows-x64-v<VERSION>.zip
+#   dist/IncredibleCrashDummies-SNESRecomp-windows-x64-v<VERSION>.zip
 # Flat zip root (exe + DLLs + shaders/ + configs + README + LICENSE, no
 # wrapper folder), plus the prebuilt native analyzer the launcher's
 # "Generate & rebuild" needs (Windows players have no Rust toolchain).
@@ -16,7 +16,7 @@ BUILD_DIR="${1:?setup-host build dir}"
 VERSION="${2:-1.0.0}"
 
 bash scripts/package_release.sh "$BUILD_DIR" windows-x64
-PACK="$(ls -t dist/demonscrest-*-windows-x64.zip | head -1)"
+PACK="$(ls -t dist/crashdummies-*-windows-x64.zip | head -1)"
 
 if [ -z "${ANALYZER_EXE:-}" ]; then
   ( cd snesrecomp/recompiler-rs &&
@@ -42,7 +42,7 @@ if [ -n "$(ls -A "$SRC/src/gen" 2>/dev/null | grep -v '^\.gitkeep$' || true)" ];
 if [ "$(find "$SRC" -maxdepth 1 -iname '*.exe' | wc -l)" -ne 1 ]; then
   echo "make_release_zip: expected exactly one top-level exe" >&2; exit 1; fi
 
-OUT="$ROOT/dist/DemonsCrest-SNESRecomp-windows-x64-v${VERSION}.zip"
+OUT="$ROOT/dist/IncredibleCrashDummies-SNESRecomp-windows-x64-v${VERSION}.zip"
 rm -f "$OUT"
 ( cd "$SRC" && zip -qr -X "$OUT" . )
 echo "wrote $OUT ($(du -h "$OUT" | cut -f1))"

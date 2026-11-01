@@ -1,5 +1,5 @@
 /*
- * Demon's Crest — desktop host shim.
+ * The Incredible Crash Dummies — desktop host shim.
  *
  * Identity and hooks, nothing else. The host itself is the framework's
  * (snesrecomp/runner/src/desktop/host_main.h): the pre-boot launcher, ROM
@@ -48,56 +48,13 @@
 #define SNES_GAME_VERSION "dev"
 #endif
 
-/*
- * Widescreen presentation hooks. docs/WIDESCREEN_PLAN.md: the mod package
- * (or the launcher's own Widescreen control) turns [Graphics] Widescreen on;
- * with it off every hook below reduces to the authentic 4:3 path, and 4:3
- * stays bit-identical.
- */
-static void DcPrepareFrame(int drawable_w, int drawable_h, int *w, int *h) {
-    SnesDisplayAspect aspect = SnesDisplayAspect_Clamp(g_config.display_aspect);
-    *w = DcDisplay_IsWidescreenEnabled()
-             ? DcDisplay_ComputeFrameWidth(g_dc_aspect, drawable_w,
-                                           drawable_h, aspect)
-             : 256;
-    *h = DC_FRAME_HEIGHT;
-}
-
 static void DcBeginFrame(unsigned number) {
     DcOptions_OnSimFrame(number);
-    DcWidescreenConfigureFrame();
-}
-
-static void DcEndFrame(const uint8_t *field, unsigned number) {
-    (void)field;
-    (void)number;
-    DcWidescreenAfterRaster();
-}
-
-static int DcWindowWidth(int frame_width) {
-    return DcDisplay_GetWindowBaseWidth(
-        frame_width, SnesDisplayAspect_Clamp(g_config.display_aspect));
-}
-
-/* Widescreen in the launcher's Settings > Video (Display) as well as on the
- * Mods screen: the host-owned aspect row carries this title's choices, and
- * get/set route them to the same mod feature (dc_widescreen_plugin.c). */
-static const char *const kDcWidescreenLabels[] = {"Off", "Adaptive", "16:9", "21:9", "32:9"};
-static int g_dc_ws_seeded = -1;
-static int DcLauncherWidescreenGet(void) {
-    g_dc_ws_seeded = DcWidescreenSetting_Get();
-    return g_dc_ws_seeded;
-}
-static void DcLauncherWidescreenSet(int index) {
-    /* Only a change made on this row: an edit on the Mods screen in the same
-     * launcher visit already went to state.toml and must not be undone. */
-    if (index != g_dc_ws_seeded) DcWidescreenSetting_Set(index);
-    g_dc_ws_seeded = index;
 }
 
 static const SnesDesktopHostGame kGameHost = {
-    .display_name        = "Demon's Crest",
-    .window_title        = "Demon's Crest",
+    .display_name        = "The Incredible Crash Dummies",
+    .window_title        = "The Incredible Crash Dummies",
     .region              = SNESRECOMP_ROM_REGION,
     .rom_file            = SNESRECOMP_ROM_FILE,
     .expected_sha256_hex = SNESRECOMP_ROM_EXPECTED_SHA256,
@@ -109,16 +66,13 @@ static const SnesDesktopHostGame kGameHost = {
     /* The widescreen mod drives [Graphics] Widescreen before launch; the
      * launcher toggle offers the same switch. Default off: the frame stays
      * 256 wide (the mods page decides, not this file). */
-    .widescreen_supported = 1,
-    .native_widescreen   = 1,
-    .prepare_frame       = DcPrepareFrame,
+    /* No widescreen for this title yet (the Demon's Crest hooks are
+     * game-specific); the frame stays 256 wide. */
+    .widescreen_supported = 0,
     .begin_sim_frame     = DcBeginFrame,
-    .end_sim_frame       = DcEndFrame,
-    .window_base_width   = DcWindowWidth,
-    .window_base_height  = DcDisplay_GetWindowBaseHeight,
-    /* Demon's Crest (USA) is a ROM-only cartridge (header cart type $00,
-     * SRAM size $00): progress is kept with the game's password system, not
-     * a battery. Leave the SRAM path NULL so the launcher does not offer a
+    /* The Incredible Crash Dummies (USA) has no SRAM (header cart type $00,
+     * SRAM size $00): progress uses the game's password system, not a
+     * battery. Leave the SRAM path NULL so the launcher does not offer a
      * SAVES panel for storage the cartridge never had. */
     .sram_path           = NULL,
     /* In-game Options menu (F12 or Escape / gamepad Guide): the shader preset picker
@@ -138,14 +92,6 @@ static const SnesDesktopHostGame kGameHost = {
      * row open the launcher mid-game; renderer / audio-rate / mod changes
      * restart and resume at the same moment. */
     .in_game_launcher    = 1,
-    .aspect_labels        = kDcWidescreenLabels,
-    .num_aspect_labels    = 5,
-    .aspect_setting_label = "Widescreen",
-    .aspect_setting_help  =
-        "Show the stage beyond the 256-column view (the Widescreen mod). "
-        "Adaptive fits the window; 16:9, 21:9 and 32:9 are fixed views.",
-    .aspect_get           = DcLauncherWidescreenGet,
-    .aspect_set           = DcLauncherWidescreenSet,
 };
 
 #ifndef __ANDROID__
@@ -157,7 +103,7 @@ static const SnesDesktopHostGame kGameHost = {
 #include <io.h>
 /* The playable Windows build uses the GUI subsystem (no console window).
  * Logs: a terminal launch attaches to that console; --console opens a new
- * one; otherwise stdout/stderr go to DemonsCrest.log beside the exe. */
+ * one; otherwise stdout/stderr go to CrashDummies.log beside the exe. */
 static void dc_win_redirect_logs(int argc, char **argv)
 {
     if (GetStdHandle(STD_ERROR_HANDLE)) return;   /* already redirected */
@@ -175,7 +121,7 @@ static void dc_win_redirect_logs(int argc, char **argv)
     if (n == 0 || n >= MAX_PATH) return;
     wchar_t *slash = wcsrchr(path, L'\\');
     if (!slash) return;
-    wcscpy(slash + 1, L"DemonsCrest.log");
+    wcscpy(slash + 1, L"CrashDummies.log");
     /* One file: stdout truncates it, then both streams append unbuffered, so
      * each write lands at the current end and neither overwrites the other.
      * (A GUI app's stderr FILE has no descriptor, so _dup2 alone misses it.) */

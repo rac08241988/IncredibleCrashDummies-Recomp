@@ -482,9 +482,9 @@ static void build_rows(void) {
   r = row("graphics.motion", T_VIDEO, "120Hz motion",
           "120 Hz output with 60 Hz game logic. Needs a 100 Hz+ display.", R_PICK);
   pick(r, kMotionLabels, 3, NULL, 0);
-  r = row("graphics.widescreen", T_VIDEO, "Widescreen",
-          "Show the stage beyond the 256-column view. Adaptive fits the window.", R_PICK);
-  pick(r, kWidescreenLabels, 5, NULL, 0);
+  /* No Widescreen row: The Incredible Crash Dummies has no widescreen
+   * support (the Demon's Crest hooks were game-specific). */
+  (void)kWidescreenLabels;
 #if defined(RECOMP_LAUNCHER)
   row("video.frame_blend", T_VIDEO, "Frame blend",
       "Blend consecutive frames (flicker transparency).", R_TOGGLE);
@@ -532,7 +532,7 @@ static void build_rows(void) {
 #endif
   row("system.resume", T_SYSTEM, "Resume", "Close this panel.", R_ACTION);
   row("system.reset", T_SYSTEM, "Reset console", "Restart the game from power-on.", R_ACTION);
-  row("system.quit", T_SYSTEM, "Quit", "Close Demon's Crest.", R_ACTION);
+  row("system.quit", T_SYSTEM, "Quit", "Close The Incredible Crash Dummies.", R_ACTION);
 }
 
 /* Committed value of a row. */
@@ -849,13 +849,13 @@ static void menu_input(MenuIn in) {
 
 /* ---- drawing ------------------------------------------------------------- */
 
-/* Demon's Crest: gothic purple with a crimson edge. */
-#define C_TEXT    0xFFF4EEF8u
-#define C_DIM     0xFFB3A6C0u
+/* The Incredible Crash Dummies: crash-test yellow with a safety-orange edge. */
+#define C_TEXT    0xFFFFF8E8u
+#define C_DIM     0xFFC8BFA6u
 #define C_FAINT   0x66FFFFFFu
-#define C_ACCENT  0xFF8E4DFFu
-#define C_ACCENT2 0xFFC23A5Au
-#define C_TINT    0xFF140B1Cu
+#define C_ACCENT  0xFFFFC21Au
+#define C_ACCENT2 0xFFFF5A1Fu
+#define C_TINT    0xFF17140Au
 
 static uint32_t *g_layer;
 static size_t g_layer_cap;
@@ -1213,7 +1213,7 @@ static void render_panel(const SnesModalLayerView *v) {
   /* Header */
   rp_text(c, RP_BOLD, 40 * s, x, y, "Options", C_TEXT, w * .6f);
   {
-    const char *game = "DEMON'S CREST";
+    const char *game = "CRASH DUMMIES";
     float gs = 14 * s;
     float gw = rp_text_width(RP_BOLD, gs, game);
     rp_text(c, RP_BOLD, gs, x + w - gw, y + 16 * s, game, C_ACCENT2, w * .38f);

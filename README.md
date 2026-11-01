@@ -1,43 +1,44 @@
-# Demon's Crest Recompiled
+# The Incredible Crash Dummies Recompiled (SNES) — WORK IN PROGRESS
 
 > **Shaders only work on the Vulkan and OpenGL renderers.**
 >
-> This fork ships no game code or ROM data. You supply your own cartridge dump.
+> This project ships no game code or ROM data. You supply your own cartridge dump.
+
+**Status: early WIP, no release yet.** Started Nov 1 2026 from the
+[Demon's Crest SNESRecomp](https://github.com/rac08241988/DemonsCrestSNESRecomp)
+v1.1.0 template on the [snesrecomp](https://github.com/magnopaz/snesrecomp)
+framework. The Windows build boots to the title screen and into the first
+level ("Dummy Parking") under wine; it has not been played through yet.
 
 ![Gameplay](docs/screenshots/gameplay.png)
 
-## Play on Windows (no coding needed)
+## What works so far
 
-1. Download `DemonsCrest-SNESRecomp-windows-x64-v1.1.0.zip` from this fork's
-   [Releases](https://github.com/rac08241988/DemonsCrestSNESRecomp/releases)
-   page and unzip it anywhere.
-2. Open `DemonsCrestSNESRecomp.exe`.
-3. Click **Browse For ROM** and pick your own Demon's Crest (USA) ROM
-   (`.sfc`/`.smc`, SHA-256 `18d40a80...5844de`).
-4. Let it build. The first time it downloads a portable compiler and builds
-   the game on your PC, which takes a few minutes.
-5. Click **Play**. Next time, just open the exe.
+- ROM check: `Incredible Crash Dummies, The (USA)`, LoROM FastROM, 1 MB, no
+  SRAM (the game uses passwords), header checksum valid.
+- Recompiler runs on the ROM (`tools/regen.sh`). The seed is LLE-first:
+  every routine still runs on the framework's interpreter tier; no
+  ahead-of-time functions are promoted yet.
+- Windows x64 build (MinGW cross-compile), boots to the title screen and
+  gameplay.
+- Options side panel from the template (Esc / F12 / pad Guide) with
+  Crash Dummies colours (crash-test yellow, safety-orange edge): tabs Video,
+  Display, Audio, Controls, Shaders, System; Apply button plus F5 / pad X or
+  Start; keyboard / Xbox / PlayStation hint bar; Background input (default
+  Off); 120 Hz motion option; live shader preview.
+- No Widescreen option: this game does not support it (the Demon's Crest
+  widescreen hooks were game-specific and were removed).
 
-The zip has no game code and no ROM. It holds the setup exe, its DLLs, the
-GPL shaders, the prebuilt `snesrecomp-analyze.exe` (so no Rust install is
-needed) and the build tools/configs. The first run downloads a portable
-toolchain (about 800 MB) into `toolchain\` beside the exe and builds the game
-into `build\`; after that, opening the setup exe hands off to
-`build\DemonsCrestSNESRecomp.exe`. The zip root is flat with a single exe, so
-launchers such as Quiver Launcher pick it up automatically. Everything is built on your machine
-from your own cartridge dump. In game, press **F12** or **Escape** (or the
-pad **Guide** button) to open the Options side panel, where you change every
-launcher setting, pick a CRT/RetroArch shader and the 120 Hz motion mode.
-Rewind is **Shift+F12**.
+## Not done yet
 
-> **Shaders work on Vulkan and OpenGL renderers only.** New configs default to
-> OpenGL. On another renderer (Direct3D, software) the Shader row says so
-> instead of applying one; switch Video > Renderer to OpenGL or Vulkan.
+- Playtesting all levels, AOT promotion of hot routines, save-state restore
+  check, shader set check on Vulkan, setup exe / one-click builder and
+  release zip, save import and `uninstall.bat` on real Windows.
 
 ## Controls & Shortcuts
 
 These are the default bindings from the code and `config.ini` (`[KeyMap]`).
-They are documented as shipped; v1.0.2 testing did not re-verify them. "View"
+They are the template defaults; this WIP build has not re-verified each one. "View"
 is the Xbox View/Back button, which is SNES Select.
 
 | Action | Xbox controller | Keyboard |
@@ -56,7 +57,6 @@ is the Xbox View/Back button, which is SNES Select.
 | Rewind | hold View (Select) + press R3 | Shift+F12 |
 | Rewind: scrub / resume here / cancel | Left-Right / B / A | Left-Right / Enter or Space / Esc |
 | Open the launcher | hold View (Select) + press L3 | Ctrl+L |
-| Toggle widescreen | - | Alt+W |
 | Fullscreen | - | Alt+Enter |
 | Reset | - | Ctrl+R |
 | Pause / pause dimmed | - | Shift+P / P |
@@ -66,12 +66,34 @@ is the Xbox View/Back button, which is SNES Select.
 | Show performance / toggle renderer | - | F / R |
 | Start/stop a recording | - | Alt+R |
 
-The save-state browser and rewind read the pad through `[GamepadMap]`, the
-same mapping as gameplay, so their on-screen A / B / X prompts are **SNES**
-buttons: SNES A = Xbox B, SNES B = Xbox A, SNES X = Xbox Y with the default
-map. (The Options menu uses Xbox A to accept and Xbox B to go back. It reads
-the pad only while it is open; with the menu closed, gameplay input is exactly
-as in v1.0.3: fire = SNES Y = Xbox X, jump = SNES B = Xbox A.)
+The default pad map is positional: SNES B = Xbox A, SNES Y = Xbox X,
+SNES A = Xbox B, SNES X = Xbox Y. The Options menu uses Xbox A to accept and
+Xbox B to go back, and reads the pad only while it is open; gameplay input is
+never re-routed.
+
+## Build (from Linux, Windows exe)
+
+```sh
+git clone https://github.com/rac08241988/IncredibleCrashDummies-SNESRecomp
+cd IncredibleCrashDummies-SNESRecomp
+scripts/setup.sh --rom "/path/to/Incredible Crash Dummies, The (USA).sfc"
+cmake -S . -B build-win -G Ninja -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/mingw-w64.cmake
+cmake --build build-win -j
+```
+
+## ROM identity
+
+| | |
+|---|---|
+| File | `Incredible Crash Dummies, The (USA).sfc` |
+| Header title | `INCRED. CRASH DUMMIES` |
+| Mapping | LoROM (FastROM), 1 MB, no SRAM |
+| CRC32 | `0b6209ba` |
+| SHA-1 | `8fb4dc371c0e44fe362b23b5fec464288e3cc5ec` |
+| SHA-256 | `0415adfe80977485f84cdffaaa79f18c91c004c7dba202b4cf9a94eb11adeada` |
+
+A 512-byte copier header is stripped before the check.
 
 ## Tested On
 
@@ -84,517 +106,7 @@ The project owner's PC:
 - OS: Windows and AtlasOS
 - Renderers tested: Vulkan and OpenGL
 
-## What's new in v1.1.0
-
-![Options panel, Video tab](docs/screenshots/options-video.png)
-![Shaders tab on Vulkan, CRT-Lottes previewing behind the panel](docs/screenshots/options-shaders-vulkan.png)
-
-- **New Options side panel.** A frosted panel on the right with the game
-  still visible beside it, tabs (Video, Display, Audio, Controls, Shaders,
-  System) and an **Apply** button (also pad X / Start, or F5). Every launcher
-  setting is in it: renderer, VSync, 120 Hz motion, widescreen, frame blend,
-  run-ahead, fullscreen, window scale, stretch, linear filtering, volume,
-  audio rate, P1/P2 controller, deadzone, save slot, save/load state,
-  skip launcher, resume on launch, reset and quit. Changes are kept pending
-  until you press Apply; shaders preview live behind the panel and are only
-  saved on Apply. The bottom hint bar shows Xbox or PlayStation glyphs to
-  match your controller, or keys when you use the keyboard.
-- **Background Input** (Controls tab, saved as `BackgroundInput` in
-  `config.ini` `[Controller]`). **Off by default:** when the window is not
-  focused the game ignores the controller and releases held buttons. Turn it
-  on to keep playing with the window in the background.
-- **Vulkan shaders (issue #1).** The Vulkan presenter now creates the
-  librashader chain on its own command buffer after the first frame, adds
-  the image usage librashader needs to read the frame, and writes
-  `build\librashader.log` plus `[dc] libra:` lines in the game log (set
-  `DC_VK_DEBUG=1` for more) so a failure says why.
-- **Save import.** When the setup builds the game, it looks for an earlier
-  Demon's Crest SNES Recomp install in the same parent folder (for example
-  an older unzipped release next to this one) and copies its saves and
-  settings in. It backs up anything already in `build\saves` to
-  `build\save-backups\<date-time>\` first, never replaces a save that is
-  newer than the imported one, and only copies `.ini` settings that this
-  install does not have yet. It runs once (`build\saves\.imported`) and logs
-  to `build\save-import.log`. To turn it off, put an empty file named
-  `no-save-import` beside the setup exe, or set `SNESRECOMP_NO_SAVE_IMPORT=1`.
-- **Uninstall.** `uninstall.bat` in the zip asks **"Delete save files?"**.
-  **No** removes the game but keeps `build\saves`, `build\save-backups` and
-  your settings so a new install can import them; **Yes** removes the whole
-  folder.
-
-## Where your saves are
-
-All inside the folder you unzipped:
-
-| File | What it is |
-|---|---|
-| `build\saves\save.srm` | The game's own battery save |
-| `build\saves\save0.sav` ... `save9.sav` | Save-state slots (F1-F10 / Shift+F1-F10, Options > System) |
-| `build\saves\resume.sav` | Restore point used when the game restarts itself to apply a setting (renderer, shader backend) |
-| `build\config.ini` | Video, audio, controller and key settings |
-| `build\dc_options.ini` | Shader and 120 Hz motion choices |
-| `build\save-backups\` | Backups made before a save import |
-
-Rebuilding from the setup exe never deletes `build\saves`. Copy that folder
-to keep your progress safe.
-
-## What's new in v1.0.3
-
-- **Shader preview works on the game behind the Options menu again.** In
-  v1.0.1 and v1.0.2, opening the Options menu (Esc / F12 / Guide) made the
-  shader apply only to the menu, while the game behind it went blocky and
-  unshaded until the menu closed. Now the shader is applied straight away to
-  the game image while the menu is open, so you can see what each preset
-  does as you pick it, on both OpenGL (`.glslp`) and Vulkan (`.slang`). The
-  menu is drawn crisp on top of the shaded picture.
-  This was a **regression from v1.0.1**. While the menu was open, the frozen
-  game frame was handed to the shader as a 2x blown-up copy with the menu
-  baked in, so the shader treated each 2x2 block as one pixel. v1.0.3 sends
-  the game frame through the shader at its real size and draws the menu
-  afterwards as a separate layer.
-- **Black screen when switching the shader back to Off: fixed.** It had the
-  same cause in the OpenGL renderer. After a GLSL preset ran, the plain
-  (no-shader) draw used a broken vertex layout. The layout is now restored
-  before drawing.
-- Controller handling is unchanged from v1.0.2.
-- **Known issues:**
-  - Vulkan slang shaders do not load on some real GPUs
-    ([issue #1](https://github.com/rac08241988/DemonsCrestSNESRecomp/issues/1));
-    use the OpenGL renderer for shaders meanwhile;
-  - in widescreen, the margins are dark in the stage-1 dragon arena.
-
-## What's new in v1.0.2
-
-- **Controller fix: gameplay controls are back to v1.0.0.** v1.0.1's
-  "Xbox-style prompts" change re-routed the physical controller buttons by
-  controller family. It was meant only for the menus and prompts, but on a
-  real Xbox One controller it changed the controls for the whole game, and
-  players had to fix their bindings by hand in the launcher's Controller
-  screen. v1.0.2 rolls that change back to v1.0.0's controller handling: the
-  pad goes through `[GamepadMap]` everywhere again, and the family-based
-  routing, the per-family A/B swap in the Options menu and the
-  controller-family prompt glyphs are removed. Everything else from v1.0.1
-  (shaders, librashader, in-game settings, widescreen row, save-state rows)
-  is unchanged.
-- **If you rebound your controls by hand on v1.0.1**, open the launcher's
-  **Controller** screen and use **Reset to Defaults** to get the v1.0.0
-  layout back.
-- **Known issues:**
-  - on some PCs the screen goes black when switching the shader back to
-    **Off** (restart the game if it happens);
-  - Vulkan slang shaders do not load on some real GPUs
-    ([issue #1](https://github.com/rac08241988/DemonsCrestSNESRecomp/issues/1));
-    use the OpenGL renderer for shaders meanwhile;
-  - in widescreen, the margins are dark in the stage-1 dragon arena.
-
-## What's new in v1.0.1
-
-- **Shader menu fixed.** Left/Right now cycles every preset and Enter applies
-  it, on keyboard and pad. The choice is saved and defaults to Off. The list
-  has 346 presets:
-  - the full libretro **slang** pack (`.slangp`), staged exactly like N64 Recomp
-    Magical Tetris: the same pinned `slang-shaders` commit `e1d75632`, its 12
-    license-audited presets first, then all 246 of `presets/`;
-  - the 88 `.glslp` presets.
-
-  Slang presets run through **librashader** on both the **OpenGL** and the
-  **Vulkan** renderer. They ship as unmodified source with their licenses
-  (`shaders/slang/LICENSES`, `manifest.txt`; see [`SHADERS.md`](SHADERS.md)).
-- **Black picture with slang presets on OpenGL fixed.** The game texture was
-  sampled as mip-incomplete, so every pass read black.
-- **The in-game Options menu now has every launcher setting**, in sections:
-  Video, Save States, Display, Audio, Controls and System. Settings that only
-  take effect after a restart are labelled so.
-- **Widescreen row** (Off / Adaptive / 16:9 / 21:9 / 32:9), applied live, in
-  both the in-game menu and the launcher.
-- **Save State / Load State** next to Video, with a slot selector. There is no
-  autosave.
-- ~~**Xbox-style prompts.**~~ Rolled back in v1.0.2: it changed the gameplay
-  controls, not just the menus.
-- **New configs default to OpenGL.**
-- **Known issue (deferred):** on some PCs the screen goes black when switching
-  the shader back to **Off**. If it happens, restart the game. A fix is
-  planned for a later release.
-
----
-
-Native PC recompilation of **Demon's Crest** (USA), built on
-[snesrecomp](https://github.com/magnopaz/snesrecomp). The 65816 game
-code is translated to C and runs on the framework's authoritative interpreter,
-while the SNES hardware — PPU, APU/SPC700, DMA/HDMA and cartridge mapping — is
-emulated. Same model as N64Recomp and similar projects: recompile the CPU,
-emulate the silicon.
-
-Play with **adaptive widescreen**, save states, rewind and the shared launcher,
-using your own legally dumped ROM.
-
-[Quick start](#quick-start-build-from-source) |
-[Features](#features) |
-[Widescreen](#widescreen) |
-[Recording](#recording) |
-[Known issues](#known-issues) |
-[Build](#build) |
-[Run](#run)
-
-> **You must legally own a copy of the game.** No ROM data is distributed with
-> this project, in the repository or in any release. The recompiled C is
-> generated locally from your own copy and is never committed.
-
-
-## This fork: options menu, RetroArch shaders, 120 Hz (branch `shaders-120hz`)
-
-Additions on top of upstream (no game code, ROM, or generated C is committed):
-
-- **In-game Options menu** - press **F12** or **Escape** (no modifiers) or the
-  gamepad **Guide** button. Arrows / D-pad move, Left/Right change, Enter or
-  pad A accepts, Backspace or pad B goes back, Escape / F12 / Guide close it.
-  The game pauses while it is open.
-- **Shader** - the full libretro slang pack (librashader, OpenGL and Vulkan
-  renderers; packaging mirrors N64 Recomp Magical Tetris, see
-  [`SHADERS.md`](SHADERS.md)) plus the RetroArch `.glslp` presets from
-  libretro/glsl-shaders (commit cba01a48), applied live with Left/Right +
-  Enter. Shaders work on Vulkan and OpenGL renderers only. Chosen only from
-  this menu; `config.ini`'s `Shader` key is ignored.
-- **120Hz motion** - Off / Interpolate / Low-latency. Game logic stays at
-  60 Hz; on a 100 Hz+ display each in-between frame is re-rendered with
-  interpolated scroll and sprite positions (widescreen aware). Interpolate is
-  smoothest (blends the previous and newest frame, about half a frame of
-  added latency); Low-latency extrapolates ahead of the newest frame instead
-  (no added latency, may overshoot briefly when motion stops).
-- Both settings persist in `dc_options.ini` beside the executable.
-- **Rebinds:** Rewind moved from F12 to **Shift+F12** (pad Select+R3 is
-  unchanged). Escape had no binding in single-player play (the framework uses
-  it only to leave a netplay session, which this target does not build, and to
-  close its own save-state/rewind overlays, which still works).
-- **No console window on Windows** - the game exe is a GUI-subsystem app;
-  its log goes to `DemonsCrest.log` beside the exe. Run it from a terminal
-  (log prints there) or pass `--console` to open a log console.
-
-### Setup and build
-
-```sh
-git clone -b shaders-120hz https://github.com/rac08241988/DemonsCrestSNESRecomp
-cd DemonsCrestSNESRecomp
-scripts/setup.sh --rom "/path/to/Demon's Crest (USA).sfc"   # submodules, framework patch, shaders, regen
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build
-# (shaders/ is staged beside the exe automatically when <repo>/shaders exists)
-# Windows exe from Linux:
-cmake -S . -B build-win -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake -DCMAKE_BUILD_TYPE=Release
-```
-
-**Release builder zip (no game code).** Build the setup host from a tree with
-an empty `src/gen/`, then pack it. The packager refuses ROMs and generated C,
-and ships the patched sources plus `shaders/`, so the player's machine builds
-the game with the launcher's portable `cmake-clang-v1` toolchain:
-
-```sh
-scripts/setup.sh                              # no --rom: patch + shaders only
-cmake -S . -B build-setup -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64.cmake \
-      -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SETUP_HOST=ON
-cmake --build build-setup
-scripts/package_release.sh build-setup windows-x64   # dist/demonscrest-<ver>-windows-x64.zip
-```
-
-`setup.sh` checks your ROM against `rom_identity.txt` (sha256
-`18d40a80...5844de`, a 512-byte copier header is stripped) before generating
-code. Fork note: upstream's `snesrecomp` gitlink `a085bfc` is not published
-on magnopaz/snesrecomp, so this branch pins `88d24ef`
-(`demons-crest/host-hooks`). Test hooks: `DC_SHADER_PRESET=<id>` (e.g. `slang/crt-geom-simple`, `glsl/crt-easymode`),
-`DC_MOTION=off|interpolate|lowlatency`, `DC_INTERP_HZ=<hz>`. Licensing of the
-additions: see [`NOTICE.md`](NOTICE.md).
-
-## Status
-
-The port boots and plays: the Capcom logo, intro, stage gameplay and boss
-fights all run from the generated C. The native **Widescreen** mod is
-implemented and validated through its final phase — background margins,
-objects and sprites, HUD anchoring, the Mode 7 overworld, the top-band flicker
-and save-state round-trips — with the engineering notes and validation summary
-in [`docs/PORTING_NOTES.md`](docs/PORTING_NOTES.md). See [Known
-issues](#known-issues) for what playtesting has since turned up, including the
-save-state CPU caveat.
-
-Playtesting continues; general gameplay bugs and broader coverage are the
-remaining work, so treat a full-game playthrough as not yet certified.
-
-### What has been verified by playing it
-
-These were confirmed by actually playing (and scripting) the game, not only by
-frame-accuracy checks:
-
-- **Boot → play**: logo, intro, title, attract and a new game all run.
-- **Stage gameplay and bosses**: the ice cavern, mountains and castle stages run
-  with their bosses, HUD, crest icons and forms intact.
-- **Widescreen**: the widened field really renders stages, margins, HUD
-  anchoring and the Mode 7 overworld as described below.
-- **Forms**: switching gargoyle forms works and each form's sprites play.
-- **Scripted input**: the debug server can drive the game from reset
-  (`set_controller`, `run_to_frame`), which is how the boss and door tests in
-  the companion port are run.
-- **Recording** (new): input can be recorded and replayed frame-exactly, and
-  frames or a rolling buffer can be written to disk — see
-  [`docs/RECORDING.md`](docs/RECORDING.md).
-
-### Known issues
-
-Found while using the runner as a reference for a native port. None of them stop
-normal play, but they matter to anyone scripting or capturing the game.
-
-1. **Save states do not restore the CPU** (upstream note; in v1.0.1 testing,
-   a stage-1 state loaded back pixel-identical and play continued). Loading a state brings back
-   WRAM/VRAM/CGRAM/OAM, but the 65816 starts from reset: the screen shows the
-   Capcom copyright while the memory still holds the saved scene. A state made
-   during a boss fight therefore cannot be resumed or screenshotted — the game
-   plays its boot sequence instead. Legacy and current states both behave this
-   way when the ROM's own save is not part of the state.
-2. **`screenshot` / `dump_frame_raw` capture the current frame, and frames only
-   advance through `run_to_frame`.** A paused runner that is asked for a
-   screenshot without advancing returns the same (stale) picture, which looks
-   like a drifting capture. Pair every capture with a frame advance.
-3. **`run_to_frame` returns before the target frame is reached.** Clients that
-   read memory immediately after the command see the old frame; poll `frame`
-   until it reports the target.
-4. **Widescreen edge columns can show art that was never authored for them.**
-   In the mountain stage the far-right margin can show a strip of unrelated
-   tiles (a hazard of widening a 256-pixel game); the castle stage shows black
-   there. Cosmetic only, and only with the widescreen mod enabled.
-5. **Boss sprite composition is only correct in the runner.** The native port
-   built from these captures had to reassemble boss OAM parts itself and got
-   them wrong for a while; that is a port problem, recorded here so the
-   distinction is clear when comparing screenshots.
-
-
-## Features
-
-| Available | Feature | What it adds |
-|:---------:|---------|--------------|
-| &#9745; | **Adaptive widescreen** | Native widened field with adaptive, 16:9, 21:9 and 32:9 views. Disabled by default; with it off the game renders at the original 256-pixel width. |
-| &#9745; | **Save states** | Ten slots (`F1`–`F10` load, `Shift+F1`–`Shift+F10` save) plus the save-state browser (`F11`). States load in a fresh process, but they do not restore the CPU — see [Known issues](#known-issues). |
-| &#9745; | **Rewind** | Rewind history (`Shift+F12`, or hold View + press R3) over the shared framework's snapshot ring. |
-| &#9745; | **Recording** | **Alt+R** starts/stops a take: one BMP per presented frame plus a replayable `input_log.jsonl`, in `captures/rec_<time>/`. Needs no debug server; the protocol can additionally replay the pad stream frame-exactly or keep a rolling capture. See [`docs/RECORDING.md`](docs/RECORDING.md). |
-| &#9745; | **Launcher** | `recomp-ui` ROM picker with a verification badge, display/audio/input settings and the Mods screen. |
-| &#9745; | **ROM verification** | The ROM is checked against the project digests before anything boots; a mismatched dump is refused instead of mis-executing. |
-| &#9745; | **Authentic 4:3** | The original 256-pixel field and layer layout remain the default when the widescreen mod is off. |
-
-## Widescreen
-
-Pick **Widescreen** in the in-game Options menu (Video > Widescreen, applied
-live) or in the launcher: **Off**, **Adaptive**, **16:9** (342 px), **21:9**
-(448 px) or **32:9** (682 px). It is off by default.
-
-A stage screenshot (stage 1 at 21:9, and one at 16:9) was taken while testing
-v1.0.1. It is not committed, because this fork ships no game screenshots. In
-that scene, the opening of the stage-1 dragon fight, the margins showed the
-sprites but stayed dark behind them.
-
-What it does:
-
-- renders the game directly into the widened field (`native_widescreen`), so
-  the scrolling backgrounds continue into symmetric margins;
-- gates widening to stage gameplay (`$8D` in 1..0x7F, or the Mode 7 overworld
-  map with its alternate-HUD variant): menus, cutscenes, password and
-  transitional screens stay pillarboxed;
-- widens the object-loop cull and the OAM emitter so enemies and effects just
-  outside the native view keep updating and appear in the margins, and widens
-  the attack projectile's on-screen test so shots fly across the whole field;
-- anchors the BG3 status bar to the widened left edge and leaves the freed
-  columns transparent, showing the scenery where the bar used to sit; BG3 is
-  widened only on the bar's scanlines, so a dialogue box on the same layer
-  keeps its native columns;
-- keeps the Start/status menu pillarboxed (`$00FB` marks it): it is a
-  full-screen native UI, and widening it would show the stage tilemap in the
-  margins;
-- drops the game's forced-blank upload cover from the raster replay in every
-  scene (a field that stays blank keeps its black), which removes the black
-  band that flickered at the top and lets HDMA tables start at the top of the
-  field, keeping window effects aligned with their targets;
-- keeps dialogue boxes and edge windows intact: the fixed-color box cannot
-  leak a strip into the top-left corner, and a parked one-pixel layer window
-  moves with the widened edge instead of cutting a one-pixel seam at the
-  margin boundary;
-- opens the Mode 7 overworld map to the widened field; the terrain continues
-  into the margins with no renderer change.
-
-The generated-code hooks are applied by
-[`tools/dc_apply_widescreen_hooks.py`](tools/dc_apply_widescreen_hooks.py), an
-idempotent injector run by `tools/regen.sh` and by the build. At margin 0 every
-injected expression evaluates to the authentic constant, so the object and
-sprite hooks add nothing to the 4:3 path.
-
-Diagnostic kill-switches for A/B captures:
-`SNESRECOMP_WS_OAM=0` (object/sprite widening),
-`SNESRECOMP_WS_HUD=0` (status-bar anchoring),
-`SNESRECOMP_WS_NOBLANK=0` (upload-cover policy),
-`SNESRECOMP_WS_CULL=<px>` (cap the margin object window; 0 = authentic cull)
-and `SNESRECOMP_WS_EXTRA=<px>` (fixed margin).
-
-## Quick start (build from source)
-
-1. Clone with the framework and launcher submodules:
-   ```sh
-   git clone --recurse-submodules https://github.com/magnopaz/DemonsCrestSNESRecomp.git
-   cd DemonsCrestSNESRecomp
-   ```
-2. Have your own **Demon's Crest (USA)** ROM available. Keeping it outside the
-   repository is the better habit; `SNESRECOMP_ROM` sets the path once for a
-   shell.
-3. Generate the recompiled C from the ROM:
-   ```sh
-   bash tools/regen.sh --rom "/path/to/Demon's Crest (USA).sfc"
-   ```
-4. Configure and build:
-   ```sh
-   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-   cmake --build build -j
-   ```
-5. Run:
-
-   ```sh
-   ./build/DemonsCrestSNESRecomp
-   ```
-
-   The launcher asks for the ROM on the first run and caches the choice.
-
-On Windows with the MinGW toolchain, `tools/play.ps1` wraps regeneration,
-configuration, build and launch in one step.
-
-## Build
-
-The default desktop backend is SDL3 (fetched and built from source when no
-package is installed). To build against an installed SDL2 development package
-instead — for example the MinGW one at `M:\SDL` on Windows:
-
-```sh
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-  -DSNESRECOMP_SDL_BACKEND=SDL2 \
-  -DSDL2_DIR="M:/SDL/SDL2-2.32.6/x86_64-w64-mingw32/lib/cmake/SDL2"
-```
-
-`tools/play.ps1` automates regen + configure + build + launch for the Windows
-MinGW toolchain (CMake, Ninja, GCC, Rust GNU, SDL2 under `M:\SDL`). It refuses
-to build while a game instance is running (a forced kill would end that
-session with no exit report); pass `-KillRunning` to terminate it explicitly.
-
-The ROM does not have to live in the repository — `SNESRECOMP_ROM` sets the
-path for a shell. Without it, `tools/regen.sh` looks for
-`Demon's Crest (USA).sfc` at the repo root, then for the path the setup wizard
-recorded in `rom.cfg`; `.gitignore` blocks both from ever being committed.
-
-`tools/regen.sh` verifies the ROM, generates `src/gen/*.c`, and re-syncs
-`recomp/funcs.h`. Re-run it whenever you change anything under `recomp/`.
-
-## Run
-
-```sh
-./build/DemonsCrestSNESRecomp
-# or name the ROM and skip the launcher
-./build/DemonsCrestSNESRecomp "/path/to/Demon's Crest (USA).sfc"
-```
-
-With no ROM on the command line the build opens the `recomp-ui` launcher: a ROM
-picker with a verification badge, display/audio/input settings and the Mods
-screen. Your choice is cached in `rom.cfg` beside the executable, so the next
-launch opens on it and "Skip launcher on boot" makes it immediate. If the
-launcher is not built in (`--no-recomp-ui`), the host falls back to a native
-file picker.
-
-Either way the ROM is checked against the digests below before anything boots —
-a dump that could not have produced this build is refused at the door rather
-than mis-executing ten frames in.
-
-During play: `F11` opens the save-state browser and `Shift+F12` opens rewind (`F12` opens the Options menu); both
-pause gameplay while you choose. **Alt+R starts/stops a recording** (frames plus
-a replayable input log, saved under `captures/`). Hotkeys, controller mappings
-and pixel/aspect options live in the launcher; `Alt+R` can be moved with
-`Record = <key>` in `config.ini`'s `[KeyMap]`.
-
-## Recording
-
-The debug server can capture a session and reproduce it, which is how the
-screenshots above and the port's reference captures are made:
-
-```sh
-# keep the last ~5 seconds in memory and write them when the window closes
-SNESREC_RING_DIR=captures/somulo ./build/DemonsCrestSNESRecomp "Demon's Crest (USA).sfc"
-
-# or, with SNESRECOMP_DEBUG_PORT set, from a debug client
-record_input_start
-... play the fight ...
-record_input_stop captures/fight.jsonl
-replay_input captures/fight.jsonl      # reproduce it frame-exactly
-record_frames captures/somulo 600 1     # one BMP per frame
-python tools/bmp_sequence.py captures/somulo --gif somulo.gif
-```
-
-Input is sampled where the runner reads the pad, so file frame N is the input
-frame N ran with. See [`docs/RECORDING.md`](docs/RECORDING.md) for every command
-and its limits.
-
-## ROM identity
-
-| | |
-|---|---|
-| File | `Demon's Crest (USA).sfc` |
-| Publisher | Capcom |
-| Developer | Capcom |
-| Year | 1994 |
-| Mapping | lorom |
-| Region | USA (North America) |
-| Coprocessor | none |
-| CRC32 | `e8236ad2` |
-| SHA-256 | `18d40a807d5f88c5b6a1ad849eec7e0f189225d9a1586037c850f6680b5844de` |
-
-`tools/regen.sh` refuses to run against anything else, so a mismatched revision
-fails immediately instead of producing subtly wrong output.
-
-## How the recompilation works
-
-The 65816 CPU code from the ROM is statically translated to C — every function
-the analysis can prove is a real generated C function in `src/gen/`. Execution
-is **LLE-first**: an authoritative 65816 interpreter is the correctness floor,
-and the statically compiled bodies are exact, proven materializations on top of
-it — anything the static pass cannot prove keeps running through the
-interpreter, loudly. The rest of the SNES is not recompiled: PPU rendering, the
-APU/SPC700, DMA/HDMA, hardware register I/O and bank mapping run through
-`snesrecomp`'s runner implementations.
-
-Rules for contributors:
-
-1. Never edit `src/gen/` by hand and never synthesise a result to get past
-   uncovered code. Fix the config or the framework and regenerate.
-2. Name routines in `recomp/symbols.toml`, then re-run `tools/regen.sh`. Set
-   `emit = true` to promote a routine into ahead-of-time analysis; leave it
-   false to keep it interpreted. Only proven variants become AOT code. See
-   [`recomp/README.md`](recomp/README.md).
-3. Deal with unresolved indirect dispatch targets before anything else — they
-   are the reason a port diverges.
-
-## Layout
-
-| Path | What lives there |
-|---|---|
-| `recomp/` | Analysis input: `bank*.cfg`, `symbols.toml`, generated `funcs.h` |
-| `rom_identity.txt` | ROM digests — read by the build, `tools/regen.sh` and CI |
-| `src/` | Host code you own: `main.c`, `game_rtl.c`, widescreen policy |
-| `src/gen/` | Generated C. Never committed — regenerate locally |
-| `docs/` | `PORTING_NOTES.md` — verified state, fixes and roadmap |
-| `mods/` | Preloaded mod catalog (the widescreen package) |
-| `tools/` | `regen.sh`, `play.ps1` and the widescreen code injector |
-| `snesrecomp/` | Framework submodule (owns `lib/recomp-net`, `lib/retcomm-rbengine`) |
-| `recomp-ui/` | Shared launcher UI submodule |
-| `scripts/` | `package_release.sh` — player-facing zip |
-| `framework_pins.txt` | Exact framework commits this project was scaffolded against |
-
-## Reporting problems
-
-Open an issue with the build, the enabled mods and the steps to reproduce the
-problem. For gameplay bugs, attach the save state (`build/saves/saveN.sav`)
-and describe the inputs that trigger it. If the game closes unexpectedly,
-also attach `last_run_report.prev.json` (the previous run's report, preserved
-on the next launch) and any `crash_report_*.json` / `crash_minidump_*.dmp`
-from the build directory.
-
-[github.com/magnopaz/DemonsCrestSNESRecomp/issues](https://github.com/magnopaz/DemonsCrestSNESRecomp/issues)
+(WIP: so far only tested under wine on Linux.)
 
 ## License
 

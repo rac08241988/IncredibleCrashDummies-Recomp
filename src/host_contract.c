@@ -1,5 +1,5 @@
 /*
- * The host contract for Demon's Crest.
+ * The host contract for The Incredible Crash Dummies.
  *
  * The runner is a library, not an application: a handful of symbols are
  * deliberately left for the host to define. The framework's desktop host

@@ -7,7 +7,7 @@ SNESRECOMP_STATE_TRACE is set:
     frame,pbr_pc,a,x,y,sp,dbr,pbr,?,flags
 
 Two runs of the same route on a deterministic build produce byte-identical
-files (verified on the Demon's Crest attract route). Comparing a baseline
+files (verified on the The Incredible Crash Dummies attract route). Comparing a baseline
 against a candidate is therefore the strongest cheap equivalence check the
 port has: if the guest CPU state matches at every frame boundary, the AOT
 promotion or RTL change did not alter behavior on that route.

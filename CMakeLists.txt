@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(DemonsCrestSNESRecomp C CXX)
+project(IncredibleCrashDummiesSNESRecomp C CXX)
 
 set(CMAKE_C_STANDARD 11)
 
@@ -36,7 +36,7 @@ set(SNESRECOMP_ENABLE_MODS ON CACHE BOOL
     "Mod package loader + trusted plugins (required for every title)" FORCE)
 include(${SNESRECOMP_ROOT}/runner/runner.cmake)
 
-add_executable(DemonsCrestSNESRecomp
+add_executable(IncredibleCrashDummiesSNESRecomp
     ${SNESRECOMP_RUNNER_SOURCES}
     src/main.c
     src/host_contract.c
@@ -62,12 +62,12 @@ add_executable(DemonsCrestSNESRecomp
 # turns it into snesrecomp_rom_identity.h (SNESRECOMP_ROM_EXPECTED_SHA256 and
 # friends) for src/main.c, and tools/regen.sh, scripts/package_release.sh and
 # the release workflow read the same file. A revision bump is one edit there.
-target_include_directories(DemonsCrestSNESRecomp PRIVATE
+target_include_directories(IncredibleCrashDummiesSNESRecomp PRIVATE
     ${CMAKE_SOURCE_DIR}/vendor/librashader/include
     ${CMAKE_SOURCE_DIR}/vendor/vulkan-headers/include)
-target_link_libraries(DemonsCrestSNESRecomp PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(IncredibleCrashDummiesSNESRecomp PRIVATE ${CMAKE_DL_LIBS})
 
-snesrecomp_rom_identity(DemonsCrestSNESRecomp ${CMAKE_SOURCE_DIR}/rom_identity.txt)
+snesrecomp_rom_identity(IncredibleCrashDummiesSNESRecomp ${CMAKE_SOURCE_DIR}/rom_identity.txt)
 
 # Generated recompiler output. Not committed: it is derived from a copyrighted
 # ROM, so every developer regenerates it locally from their own copy -- and a
@@ -77,35 +77,16 @@ snesrecomp_rom_identity(DemonsCrestSNESRecomp ${CMAKE_SOURCE_DIR}/rom_identity.t
 # That is what release zips contain; the player's machine produces the
 # playable binary from their own ROM. Without the option an empty src/gen/ is
 # still a hard error (the framework owns the message).
-snesrecomp_target_generated_code(DemonsCrestSNESRecomp ${CMAKE_SOURCE_DIR}/src/gen)
+snesrecomp_target_generated_code(IncredibleCrashDummiesSNESRecomp ${CMAKE_SOURCE_DIR}/src/gen)
 
 # The playable Windows build opens without a console window (GUI subsystem);
-# src/main.c sends logs to DemonsCrest.log beside the exe, or to the calling
+# src/main.c sends logs to CrashDummies.log beside the exe, or to the calling
 # terminal / a new console with --console. The setup host stays a console app
 # so its generate/build child processes share one console.
 if(WIN32 AND NOT SNESRECOMP_SETUP_HOST)
-    set_target_properties(DemonsCrestSNESRecomp PROPERTIES WIN32_EXECUTABLE TRUE)
+    set_target_properties(IncredibleCrashDummiesSNESRecomp PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
-# Fase 4 widescreen hooks: the object loop's cull window is widened by the live
-# margin (src/dc_widescreen.c). The generated code is re-derived by
-# tools/regen.sh, so the injector runs as a build step and the generated
-# objects depend on it (editing the script invalidates them). Same pattern as
-# the MMX project's tools/apply_overrides.py. Idempotent; fails loudly if an
-# anchor disappears.
-if(NOT SNESRECOMP_SETUP_HOST)
-    find_package(Python3 COMPONENTS Interpreter REQUIRED)
-    file(GLOB dc_generated ${CMAKE_SOURCE_DIR}/src/gen/*.c)
-    set_property(SOURCE ${dc_generated} APPEND PROPERTY OBJECT_DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/tools/dc_apply_widescreen_hooks.py)
-    add_custom_target(DemonsCrestSNESRecomp_ws_hooks
-        COMMAND ${Python3_EXECUTABLE}
-                ${CMAKE_CURRENT_SOURCE_DIR}/tools/dc_apply_widescreen_hooks.py
-                --gen-dir ${CMAKE_SOURCE_DIR}/src/gen
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Applying Demon's Crest generated-code widescreen hooks" VERBATIM)
-    add_dependencies(DemonsCrestSNESRecomp DemonsCrestSNESRecomp_ws_hooks)
-endif()
 
 # The mod catalog. This names WHERE the packages are; the framework owns the
 # layout they are staged into beside the executable, and stages them on every
@@ -120,18 +101,18 @@ endif()
 # workspace ended up shipping an empty Mods page and nothing said so. Declaring
 # it is now also enforced: a project with packages that never calls this fails
 # to configure.
-snesrecomp_target_mod_catalog(DemonsCrestSNESRecomp ${CMAKE_SOURCE_DIR}/mods/preloaded)
+snesrecomp_target_mod_catalog(IncredibleCrashDummiesSNESRecomp ${CMAKE_SOURCE_DIR}/mods/preloaded)
 # RetroArch GLSL presets for the in-game Options menu (shaders-120hz fork).
 # Not tracked: scripts/fetch_shaders.sh stages libretro/glsl-shaders into
 # <repo>/shaders, and a setup pack ships that folder at its root, so the
 # player's rebuild puts it beside the playable exe too.
 if(EXISTS ${CMAKE_SOURCE_DIR}/shaders/presets OR EXISTS ${CMAKE_SOURCE_DIR}/shaders/slang)
-    snesrecomp_target_stage_dir(DemonsCrestSNESRecomp ${CMAKE_SOURCE_DIR}/shaders shaders)
+    snesrecomp_target_stage_dir(IncredibleCrashDummiesSNESRecomp ${CMAKE_SOURCE_DIR}/shaders shaders)
 endif()
 # Any other directory the game reads exe-relative (a translations/ table, ...)
 # is staged with snesrecomp_target_stage_dir, never with a separate ALL target.
 
-target_include_directories(DemonsCrestSNESRecomp PRIVATE
+target_include_directories(IncredibleCrashDummiesSNESRecomp PRIVATE
     ${SNESRECOMP_RUNNER_INCLUDE_DIRS}
     # common_rtl.c includes "config.h": the desktop key-map / Config contract
     # the framework host supplies (snesrecomp_target_desktop_host below).
@@ -139,12 +120,12 @@ target_include_directories(DemonsCrestSNESRecomp PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/recomp
 )
-target_link_libraries(DemonsCrestSNESRecomp PRIVATE ${SNESRECOMP_RUNNER_LIBRARIES})
-target_compile_definitions(DemonsCrestSNESRecomp PRIVATE
+target_link_libraries(IncredibleCrashDummiesSNESRecomp PRIVATE ${SNESRECOMP_RUNNER_LIBRARIES})
+target_compile_definitions(IncredibleCrashDummiesSNESRecomp PRIVATE
     SNES_GAME_VERSION="${SNESRECOMP_BUILD_VERSION}"
-    SNES_GAME_TITLE="Demon's Crest"
+    SNES_GAME_TITLE="The Incredible Crash Dummies"
 )
-snesrecomp_target_sdl(DemonsCrestSNESRecomp)
+snesrecomp_target_sdl(IncredibleCrashDummiesSNESRecomp)
 
 # The desktop host: launcher flow, ROM resolution, config.ini + [KeyMap],
 # window + SDL/OpenGL presenters, audio, gamepads, the save-state browser and
@@ -155,11 +136,11 @@ snesrecomp_target_sdl(DemonsCrestSNESRecomp)
 # capture loop and the promotion investigation are documented in
 # docs/PORTING_NOTES.md. Promotion of captured roots is held until the
 # scheduler HLE exists (see that document).
-snesrecomp_target_desktop_host(DemonsCrestSNESRecomp TIER2)
+snesrecomp_target_desktop_host(IncredibleCrashDummiesSNESRecomp TIER2)
 # rom.cfg (the ROM the wizard set this project up from; git-ignored) is
 # staged beside the executable when none is there yet, so the first launch
 # opens on that dump rather than asking for one.
-snesrecomp_target_rom_cache(DemonsCrestSNESRecomp)
+snesrecomp_target_rom_cache(IncredibleCrashDummiesSNESRecomp)
 
 # Shared Dear ImGui pre-boot launcher (ROM picker, verification, display /
 # audio / input settings). Self-contained: it brings its own ImGui, GL link and
@@ -175,7 +156,7 @@ include(${RECOMP_UI_ROOT}/recomp_ui.cmake)
 # BOXART stages launcher_assets/img/boxart.tga beside the exe; the launcher
 # shows assets/img/boxart.tga by default. EXISTS-guarded in recomp_ui.cmake,
 # so this configures cleanly before any art is fetched.
-recomp_target_launcher_ui(DemonsCrestSNESRecomp CONSOLE snes
+recomp_target_launcher_ui(IncredibleCrashDummiesSNESRecomp CONSOLE snes
     BOXART "${CMAKE_SOURCE_DIR}/launcher_assets/img/boxart.tga")
 
 # Generate & rebuild from inside the launcher: pick ROM -> recompile locally
@@ -183,9 +164,9 @@ recomp_target_launcher_ui(DemonsCrestSNESRecomp CONSOLE snes
 # project contributes no configuration (snesrecomp_codegen_host_autowire in
 # src/main.c). recomp-ui/src is on the include path because the host speaks
 # RecompLauncherCGameInfo.
-target_sources(DemonsCrestSNESRecomp PRIVATE
+target_sources(IncredibleCrashDummiesSNESRecomp PRIVATE
     ${SNESRECOMP_ROOT}/host/snesrecomp_codegen_host.c)
-target_include_directories(DemonsCrestSNESRecomp PRIVATE
+target_include_directories(IncredibleCrashDummiesSNESRecomp PRIVATE
     ${SNESRECOMP_ROOT}/host
     ${RECOMP_UI_ROOT}/src)
 

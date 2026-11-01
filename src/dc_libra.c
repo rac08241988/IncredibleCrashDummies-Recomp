@@ -27,7 +27,7 @@
 
 /* Shader diagnostics go to librashader.log beside the exe (truncated once per
  * run) as well as stderr. A GUI build has no console, and the player's
- * DemonsCrest.log mixes everything; this file is what an issue report needs. */
+ * CrashDummies.log mixes everything; this file is what an issue report needs. */
 static FILE *g_log;
 static bool g_log_tried;
 
@@ -39,7 +39,7 @@ void DcLibra_Log(const char *fmt, ...) {
     snprintf(p, sizeof(p), "%slibrashader.log", base ? base : "");
     g_log = fopen(p, "w");
     if (g_log) {
-      fprintf(g_log, "Demon's Crest SNESRecomp shader log (SDL %d.%d.%d)\n",
+      fprintf(g_log, "Crash Dummies SNESRecomp shader log (SDL %d.%d.%d)\n",
               SDL_VERSIONNUM_MAJOR(SDL_GetVersion()), SDL_VERSIONNUM_MINOR(SDL_GetVersion()),
               SDL_VERSIONNUM_MICRO(SDL_GetVersion()));
     }

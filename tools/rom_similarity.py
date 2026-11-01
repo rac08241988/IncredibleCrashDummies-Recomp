@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Report byte-identical runs between two SNES ROM images.
 
-Used during Demon's Crest port bring-up to quantify shared Capcom library
+Used during The Incredible Crash Dummies port bring-up to quantify shared Capcom library
 code with Mega Man X: the two titles are the same cartridge class, and an
 identical region in both images is a routine worth identifying once and
 naming in `recomp/symbols.toml` for both projects.
@@ -37,7 +37,7 @@ def lorom(offset: int) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("base", help="ROM to index (e.g. Mega Man X)")
-    parser.add_argument("other", help="ROM to scan (e.g. Demon's Crest)")
+    parser.add_argument("other", help="ROM to scan (e.g. The Incredible Crash Dummies)")
     parser.add_argument("--min", type=int, default=24,
                         help="minimum run length in bytes (default 24)")
     parser.add_argument("--top", type=int, default=20,

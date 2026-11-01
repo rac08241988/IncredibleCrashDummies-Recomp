@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Demon's Crest recomp (shaders + 120 Hz fork) - source setup.
+# The Incredible Crash Dummies recomp (shaders + 120 Hz fork) - source setup.
 #
 # 1. Fetches the pinned git submodules (snesrecomp framework, recomp-ui).
 # 2. Applies patches/snesrecomp-dc.patch + recomp-ui-dc.patch to the framework (options-menu and
@@ -41,9 +41,9 @@ if [ -n "$ROM" ]; then
   TMP="$(mktemp)"; trap 'rm -f "$TMP"' EXIT
   SIZE=$(wc -c < "$ROM")
   if [ $((SIZE % 1024)) = 512 ]; then tail -c +513 "$ROM" > "$TMP"; else cp "$ROM" "$TMP"; fi
-  [ "$(sha "$TMP")" = "$WANT" ] || { echo "ERROR: $ROM is not Demon's Crest (USA) (sha256 mismatch, want $WANT)" >&2; exit 1; }
-  mkdir -p "$ROOT/rom"; cp "$TMP" "$ROOT/rom/Demon's Crest (USA).sfc"
+  [ "$(sha "$TMP")" = "$WANT" ] || { echo "ERROR: $ROM is not Incredible Crash Dummies, The (USA) (sha256 mismatch, want $WANT)" >&2; exit 1; }
+  mkdir -p "$ROOT/rom"; cp "$TMP" "$ROOT/rom/Incredible Crash Dummies, The (USA).sfc"
   echo "=== Regenerating recompiled C from your ROM ==="
-  bash "$ROOT/tools/regen.sh" --rom "$ROOT/rom/Demon's Crest (USA).sfc"
+  bash "$ROOT/tools/regen.sh" --rom "$ROOT/rom/Incredible Crash Dummies, The (USA).sfc"
 fi
 echo "=== Setup done. See README.md (Shaders + 120 Hz fork) for build steps. ==="

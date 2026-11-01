@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inject the Demon's Crest widescreen hooks into generated code (Fase 4).
+"""Inject the The Incredible Crash Dummies widescreen hooks into generated code (Fase 4).
 
 Two guest-side tests keep objects and their sprites inside the authentic
 256-px window. Both are widened by the live widescreen margin here; at margin

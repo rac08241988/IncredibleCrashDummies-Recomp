@@ -1,4 +1,4 @@
-# play.ps1 — one-click: regen + configure + build + launch Demon's Crest.
+# play.ps1 — one-click: regen + configure + build + launch The Incredible Crash Dummies.
 #
 # The toolchain this machine uses (found by discovery, overridable):
 #   - CMake            (Program Files or PATH)
@@ -18,7 +18,7 @@ $ErrorActionPreference = 'Stop'
 
 $repo = Split-Path $PSScriptRoot -Parent
 $buildDir = Join-Path $repo 'build'
-$exe = Join-Path $buildDir 'DemonsCrestSNESRecomp.exe'
+$exe = Join-Path $buildDir 'IncredibleCrashDummiesSNESRecomp.exe'
 
 function Find-Exe([string[]]$candidates, [string]$name) {
     foreach ($c in $candidates) { if ($c -and (Test-Path $c)) { return $c } }
@@ -51,11 +51,11 @@ $env:RUSTUP_TOOLCHAIN = '1.97.1-x86_64-pc-windows-gnu'
 $env:CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER = Join-Path $mingw 'gcc.exe'
 $env:PYTHON = (Get-Command python).Source
 
-$running = @(Get-Process DemonsCrestSNESRecomp -ErrorAction SilentlyContinue)
+$running = @(Get-Process IncredibleCrashDummiesSNESRecomp -ErrorAction SilentlyContinue)
 if ($running.Count -gt 0) {
     $pids = ($running | ForEach-Object { $_.Id }) -join ', '
     if (-not $KillRunning) {
-        Write-Host "DemonsCrestSNESRecomp is running (PID $pids)." -ForegroundColor Yellow
+        Write-Host "IncredibleCrashDummiesSNESRecomp is running (PID $pids)." -ForegroundColor Yellow
         Write-Host 'Close it first, or pass -KillRunning to terminate it.' -ForegroundColor Yellow
         exit 1
     }

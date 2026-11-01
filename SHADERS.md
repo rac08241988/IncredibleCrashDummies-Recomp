@@ -1,4 +1,4 @@
-# Demon's Crest SNES Recomp: shaders
+# The Incredible Crash Dummies SNES Recomp: shaders
 
 The shader setup copies **N64 Recomp Magical Tetris** (its `SHADERS.md` and `shaders-release/package-external-shaders.py`) as closely as our presenter allows:
 

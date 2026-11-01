@@ -1,4 +1,4 @@
-/* Game-specific RAM variable declarations for Demon's Crest.
+/* Game-specific RAM variable declarations for The Incredible Crash Dummies.
  *
  * The framework includes this by name (snes/cpu.c), so every project must
  * provide one even when it is empty. Populate it as WRAM locations are

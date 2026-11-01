@@ -1,5 +1,5 @@
 /*
- * Demon's Crest — per-game runtime glue.
+ * The Incredible Crash Dummies — per-game runtime glue.
  *
  * THIS FILE IS THE PORT. Everything else the scaffold produced is layout,
  * build wiring, and packaging; this is where the actual work happens.
@@ -80,25 +80,12 @@ static void GameStateLoaded(uint32_t version)
         RtlApplyExecutionState();
         resume = interp_bridge_lle_resume_pc();
         if (!resume)
-            resume = 0x808179u; /* bridge had no pending resume: scheduler */
+            resume = 0x008000u; /* TODO: map the Crash Dummies main loop */
     } else {
-        /* Legacy save (no execution chunk): the runtime state is whatever
-         * this process had. Rebuild the native-mode scheduler context the
-         * guest's own boot leaves behind when it JMPs to $80:8179: native
-         * mode, 8-bit A/X, DB=PB=$80 (WRAM mirror for $0083/$0086), D=0,
-         * scheduler stack. The scheduler then resumes each task from the
-         * loaded WRAM stacks, exactly as an in-game load does. */
-        g_cpu.emulation = 0;
-        g_cpu.PB = 0x80;
-        g_cpu.DB = 0x80;
-        g_cpu.D = 0;
-        g_cpu.S = 0x01FF;
-        g_cpu.A = 0;
-        g_cpu.X = 0;
-        g_cpu.Y = 0;
-        g_cpu.P = 0x34; /* M=1, X=1, I=1 -- SEP #$30 at the loop head */
-        cpu_p_to_mirrors(&g_cpu);
-        resume = 0x808179u;
+        /* Legacy save with no execution chunk: nothing to rebuild yet for
+         * this title (its main-loop entry is not mapped). Resume at the
+         * native NMI handler's caller is unknown, so fall back to reset. */
+        resume = 0x008000u;
     }
     snes_beam_frame_driver_state_loaded(resume);
 }
@@ -127,7 +114,7 @@ void GameSessionReset(void)
 }
 
 const RtlGameInfo kGameInfo = {
-    .title = "demonscrest",
+    .title = "crashdummies",
     .initialize = NULL,
     .run_frame = &GameRunOneFrame,
     .draw_ppu_frame = &GameDrawPpuFrame,

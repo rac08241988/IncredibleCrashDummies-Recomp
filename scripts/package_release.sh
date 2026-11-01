@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Package a Demon's Crest release: a SETUP PACK.
+# Package a The Incredible Crash Dummies release: a SETUP PACK.
 #
 # The zip does not contain the game. It contains a setup program (the host
 # built with -DSNESRECOMP_SETUP_HOST=ON, i.e. without recompiled code), the
@@ -16,7 +16,7 @@
 # the cmake-clang-v1 pack named by RETCOMM_TOOLCHAIN_DIR into the zip so the
 # player downloads nothing.
 #
-# Writes: dist/demonscrest-<VERSION>-<platform-tag>.zip
+# Writes: dist/crashdummies-<VERSION>-<platform-tag>.zip
 set -euo pipefail
 
 # A silent exit is the worst outcome a packaging step can have: the first
@@ -68,9 +68,9 @@ exec bash "$IMPL" \
   "${SHADER_ARGS[@]+"${SHADER_ARGS[@]}"}" \
   --build-dir "$BUILD_DIR" \
   --artifact "$PLATFORM" \
-  --exe-name DemonsCrestSNESRecomp \
-  --zip-prefix demonscrest \
-  --display-name "Demon's Crest" \
+  --exe-name IncredibleCrashDummiesSNESRecomp \
+  --zip-prefix crashdummies \
+  --display-name "The Incredible Crash Dummies" \
   --rom-hint "$ROM_FILE" \
   --rom-sha256 "$ROM_SHA256" \
   --rom-crc32 "$ROM_CRC32" \

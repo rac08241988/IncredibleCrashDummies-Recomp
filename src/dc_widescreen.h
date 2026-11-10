@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 /*
- * Demon's Crest widescreen policy. See docs/WIDESCREEN_PLAN.md.
+ * Crash Dummies widescreen policy (host-side, platform-neutral). See docs/WIDESCREEN_PLAN.md.
  *
  * The frame is widened by the host (SnesDesktopHostGame.native_widescreen),
  * which publishes PpuSetExtraSpace every frame in prepare_frame. This module

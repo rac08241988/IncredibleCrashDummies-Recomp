@@ -1,14 +1,21 @@
 /*
- * Demon's Crest — widescreen scene policy.
+ * The Incredible Crash Dummies — widescreen scene policy.
  *
- * Fase 1/2 of docs/WIDESCREEN_PLAN.md:
- *   - outside stage gameplay (logos, intro, title, file select, password,
- *     cutscenes) every BG layer is clamped, so the authentic 256-column
- *     picture sits centered in the widened surface with only the backdrop in
- *     the side margins (a real pillarbox, not stale pixels);
- *   - in stage gameplay BG1/BG2 render into the margins while BG3 — the
- *     upper-left status bar ($80:C9xx, VRAM $5800) — stays inside its
- *     authentic columns.
+ * Adapted from the Demon's Crest host-side policy (dc_widescreen.c), but the
+ * guest RAM/HUD/cull addresses in that title do not apply here. Opt-in 16:9:
+ *   - Off (default): authentic 256-column 4:3 with side art / backdrop in
+ *     any extra window space;
+ *   - outside stage gameplay (logos, intro, title, passwords, menus,
+ *     cutscenes) every BG layer is clamped, so the authentic picture sits
+ *     centered with side art in the margins;
+ *   - in stage gameplay BG1/BG2 render into the margins (the extra
+ *     horizontal level) while BG3 stays clamped so a HUD or overlay cannot
+ *     wrap. If a scene's edges would show wrap garbage, the gameplay gate
+ *     keeps it clamped (side-art fallback).
+ *
+ * Fase 1/2 of docs/WIDESCREEN_PLAN.md (template notes, DC-specific HUD):
+ *   - outside stage gameplay every BG layer is clamped;
+ *   - in DC stage gameplay BG1/BG2 widened while BG3 status bar stayed native.
  *
  * Fase 3: the margins are served from the framework's world-keyed tilemap
  * store (snes/ws_shadow.c) instead of the streamed VRAM window. That store
@@ -35,25 +42,31 @@
 #include "snes/ws_shadow.h"
 #include "widescreen.h"
 
-extern uint8_t g_ram[0x20000];
 extern Ppu *g_ppu;
 
 DcRenderAspect g_dc_aspect = DC_ASPECT_ADAPTIVE;
 
+static bool g_cd_stage;          /* latched once a scrolling stage is seen */
+static uint16_t g_cd_last_h = 0xFFFF;
+static int g_cd_still_frames;
+
 void DcWidescreenReset(void) {
-    g_dc_aspect = DC_ASPECT_ADAPTIVE;
+    g_dc_aspect = DC_ASPECT_16_9;
+    g_cd_stage = false;
+    g_cd_last_h = 0xFFFF;
+    g_cd_still_frames = 0;
 }
 
 /*
- * Gameplay gate. $8D is the area index the engine keys its per-stage tables
- * on ($80:C114, $84:9C5B, ...). The HUD builder's own range test at $80:C948
- * reads it as: 0 = no stage (menus/intro), 1..$7F = a stage area (the
- * per-area tables have entries across that whole span), $80..$9F = no HUD
- * screen, >= $A0 = the alternate HUD variant. Until Fase 2 proves the exact
- * in-stage screens with watchpoints (including whether >= $A0 areas are
- * playable rooms), only the unambiguous 1..$7F span widens.
- * SNESRECOMP_WS_GATE=1/0 forces the verdict so those measurements can compare
- * both modes without editing code.
+ * Gameplay gate for Crash Dummies (not Demon's Crest $8D / $00FB).
+ *
+ * A scrolling Mode-0/1 playfield with BG1 and sprites is treated as a stage
+ * once the camera has moved, or immediately if a playfield tilemap is 64
+ * tiles wide (real extra columns exist in VRAM). Title, menus, passwords
+ * and other static bounded screens stay clamped (side art). Returning to a
+ * fully static, 32-wide, zero-scroll screen for ~1.5 s drops the latch so
+ * the title after a reset does not stay widened.
+ * SNESRECOMP_WS_GATE=1/0 forces the verdict for A/B captures.
  */
 static bool DcStageGameplay(void) {
     static int forced = -2;
@@ -63,21 +76,47 @@ static bool DcStageGameplay(void) {
     }
     if (forced >= 0)
         return forced != 0;
-    /* The start/status menu is a full-screen native UI (its own BG1/BG2
-     * tilemap in the middle of a 32x32 map). Widening it shows the stage
-     * tilemap in the margins as garbage; $00FB is 1 while it is open. */
-    if (g_ram[0x00FB])
+    if (!g_ppu)
         return false;
-    const uint8_t area = g_ram[0x8D];
-    if (area != 0 && area < 0x80)
-        return true;
-    /* The flying overworld map uses the alternate HUD variant (>= $A0) and
-     * renders in PPU Mode 7. Menus, the title and transitional screens are
-     * Mode 1 (or area 0), so this combination is the playable map and can
-     * take the widened field like a stage. */
-    if (area >= 0xA0 && g_ppu && (g_ppu->bgmode & 7) == 7)
-        return true;
-    return false;
+    if (g_ppu->inidisp & 0x80)
+        return false;
+    if ((g_ppu->inidisp & 0x0F) < 0x08)
+        return false;
+
+    const int mode = g_ppu->bgmode & 7;
+    const uint8_t main_on = g_ppu->screenEnabled[0];
+    const bool bg1 = (main_on & 0x01) != 0;
+    const bool obj = (main_on & 0x10) != 0;
+    const bool wide0 = (g_ppu->bgXsc[0] & 1) != 0;
+    const bool wide1 = (g_ppu->bgXsc[1] & 1) != 0;
+    const uint16_t h0 = g_ppu->hScroll[0];
+    const bool moved = (g_cd_last_h != 0xFFFF && h0 != g_cd_last_h);
+    g_cd_last_h = h0;
+
+    /* Mode 7 / high-color screens in this title are bounded art, not stages. */
+    if (mode >= 3) {
+        g_cd_stage = false;
+        g_cd_still_frames = 0;
+        return false;
+    }
+    if (!bg1 || !obj) {
+        g_cd_stage = false;
+        g_cd_still_frames = 0;
+        return false;
+    }
+
+    if (wide0 || wide1 || moved)
+        g_cd_stage = true;
+
+    const bool zero_scroll = ((g_ppu->hScroll[0] | g_ppu->hScroll[1] |
+                               g_ppu->vScroll[0] | g_ppu->vScroll[1]) & 0x3FF) == 0;
+    if (g_cd_stage && zero_scroll && !wide0 && !wide1 && !moved) {
+        if (++g_cd_still_frames > 90)
+            g_cd_stage = false;
+    } else {
+        g_cd_still_frames = 0;
+    }
+    return g_cd_stage;
 }
 
 static void DcClearPolicies(void) {
@@ -117,7 +156,10 @@ static bool DcHistoryEnabled(void) {
     static int enabled = -1;
     if (enabled < 0) {
         const char *env = getenv("SNESRECOMP_WS_HISTORY");
-        enabled = env && env[0] && env[0] != '0';
+        /* Default ON: Crash Dummies has no HDMA camera to desync the
+         * world-keyed store the way Demon's Crest did. SNESRECOMP_WS_HISTORY=0
+         * turns it off. */
+        enabled = !env || env[0] != '0';
     }
     return enabled != 0;
 }
@@ -204,7 +246,8 @@ static int DcHudAnchorEnabled(void) {
     static int enabled = -1;
     if (enabled < 0) {
         const char *env = getenv("SNESRECOMP_WS_HUD");
-        enabled = env && env[0] ? (env[0] != '0') : 1;
+        /* Default off: Crash Dummies does not use Demon's Crest's BG3 band. */
+        enabled = env && env[0] ? (env[0] != '0') : 0;
     }
     return enabled;
 }
@@ -280,28 +323,35 @@ void DcWidescreenConfigureFrame(void) {
         return;
     }
 
-    /* Stage gameplay.
-     * BG3 (layer index 2) is the status bar: DcAnchorStatusBar() remaps it to
-     * the widened left edge on the bar's scanlines (Fase 6). BG1/BG2 extend
-     * into the margins. */
-    PpuSetWidescreenLayerClamp(g_ppu, 0);
+    /* Stage gameplay: BG1/BG2 extend into the margins (true extra level,
+     * not side art). BG3 stays clamped so a HUD/overlay cannot wrap. The
+     * Demon's Crest status-bar remap is not used: this title's HUD is not
+     * that BG3 band. World-keyed history uses each layer's live PPU scroll
+     * as its origin (no DC camera RAM mirrors here). */
+    PpuSetWidescreenLayerClamp(g_ppu, 0x04);
     PpuSetWidescreenLayerMask(g_ppu, 0);
     PpuSetWidescreenBg3Widen(g_ppu, 0);
     PpuSetWsHudOamShiftRange(g_ppu, 0, 0);
     PpuSetWsHudOamShiftRange2(g_ppu, 0, 0);
+    PpuSetWidescreenLayerElasticBand(g_ppu, 2, 0, 0, NULL, 0);
     PpuSetWidescreenLineEnhancer(g_ppu, NULL, NULL);
-    DcAnchorStatusBar();
     PpuSetIgnoreForcedBlank(g_ppu, DcNoBlankEnabled());
+    DcAnchorStatusBar(); /* no-op unless SNESRECOMP_WS_HUD=1 */
 
-    /* World-keyed margin history. BG1's world origin is the game camera
-     * ($C0/$C4, 16-bit); BG2's is its own parallax mirror ($C2/$C6). The
-     * room loader swaps BG1SC/BG2SC per room, but the scroll mirrors keep
-     * their meaning: $A2/$A6 (BG1) always carry the camera. */
     if (DcHistoryEnabled()) {
-        DcRegisterLayerHistory(0, (uint16_t)(g_ram[0xC0] | (g_ram[0xC1] << 8)),
-                               (uint16_t)(g_ram[0xC4] | (g_ram[0xC5] << 8)));
-        DcRegisterLayerHistory(1, (uint16_t)(g_ram[0xC2] | (g_ram[0xC3] << 8)),
-                               (uint16_t)(g_ram[0xC6] | (g_ram[0xC7] << 8)));
+        DcRegisterLayerHistory(0, g_ppu->hScroll[0], g_ppu->vScroll[0]);
+        DcRegisterLayerHistory(1, g_ppu->hScroll[1], g_ppu->vScroll[1]);
+    }
+
+    static unsigned dbg;
+    if (getenv("SNESRECOMP_WS_DEBUG") && (++dbg % 60) == 1) {
+        fprintf(stderr,
+                "[cd-ws] mode=%d inidisp=%02X en=%02X bgXsc=%02X/%02X/%02X "
+                "h=%u/%u v=%u/%u extra=%d stage=1\n",
+                g_ppu->bgmode & 7, g_ppu->inidisp, g_ppu->screenEnabled[0],
+                g_ppu->bgXsc[0], g_ppu->bgXsc[1], g_ppu->bgXsc[2],
+                g_ppu->hScroll[0], g_ppu->hScroll[1],
+                g_ppu->vScroll[0], g_ppu->vScroll[1], g_ws_extra);
     }
 }
 

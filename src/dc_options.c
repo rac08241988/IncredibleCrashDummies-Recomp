@@ -45,7 +45,7 @@ void RtlSaveSlotPath(int slot, char *buf, size_t buflen);
 
 static const char *const kMotionLabels[] = {"Off", "Interpolate", "Low-latency"};
 static const char *const kMotionKeys[] = {"off", "interpolate", "lowlatency"};
-static const char *const kWidescreenLabels[] = {"Off", "Adaptive", "16:9", "21:9", "32:9"};
+static const char *const kWidescreenLabels[] = {"Off", "16:9"};
 static const char *const kVsyncLabels[] = {"On", "Off", "Adaptive"};
 static const int kVsyncValues[] = {1, 2, 3}; /* RECOMP_LAUNCHER_VSYNC_* */
 static const char *const kFullscreenLabels[] = {"Windowed", "Borderless", "Exclusive"};
@@ -179,6 +179,8 @@ static void save_choice(void) {
   fprintf(f, "MotionMode = %s\n", kMotionKeys[DcInterp_GetMode()]);
   fprintf(f, "# StateSlot: the slot Save State / Load State use (1-%d)\n", DC_STATE_SLOTS);
   fprintf(f, "StateSlot = %d\n", g_slot);
+  fprintf(f, "# Widescreen: off | 16:9 (default off keeps 4:3 with side art)\n");
+  fprintf(f, "Widescreen = %s\n", DcDisplay_IsWidescreenEnabled() ? "16:9" : "off");
   fclose(f);
 }
 
@@ -216,6 +218,12 @@ static void load_saved(void) {
   const char *env = getenv("DC_MOTION"); /* test override */
   if (env && parse_motion(env) >= 0) m = parse_motion(env);
   if (m >= 0) DcInterp_SetMode((DcMotionMode)m);
+  if (read_key("Widescreen", v, sizeof(v))) {
+    if (strcmp(v, "16:9") == 0 || strcmp(v, "on") == 0 || strcmp(v, "1") == 0)
+      DcWidescreenSetting_Set(1);
+    else
+      DcWidescreenSetting_Set(0);
+  }
   if (read_key("StateSlot", v, sizeof(v))) {
     int s = atoi(v);
     if (s >= 1 && s <= DC_STATE_SLOTS) g_slot = s;
@@ -482,9 +490,11 @@ static void build_rows(void) {
   r = row("graphics.motion", T_VIDEO, "120Hz motion",
           "120 Hz output with 60 Hz game logic. Needs a 100 Hz+ display.", R_PICK);
   pick(r, kMotionLabels, 3, NULL, 0);
-  /* No Widescreen row: The Incredible Crash Dummies has no widescreen
-   * support (the Demon's Crest hooks were game-specific). */
-  (void)kWidescreenLabels;
+  r = row("graphics.widescreen", T_VIDEO, "Widescreen",
+          "Off (default) keeps the 4:3 picture with side art. 16:9 shows extra "
+          "stage beside the original view; scenes whose edges would glitch stay "
+          "on side art. Output is capped at 1080p and 60 fps.", R_PICK);
+  pick(r, kWidescreenLabels, 2, NULL, 0);
 #if defined(RECOMP_LAUNCHER)
   row("video.frame_blend", T_VIDEO, "Frame blend",
       "Blend consecutive frames (flicker transparency).", R_TOGGLE);
@@ -604,7 +614,8 @@ static void apply_all(void) {
       save_choice();
     } else if (key_is(r, "graphics.widescreen")) {
       if (!DcWidescreenSetting_Set(v))
-        fprintf(stderr, "[dc] widescreen: the mod state could not be saved\n");
+        fprintf(stderr, "[cd] widescreen: the setting could not be applied\n");
+      save_choice();
     } else if (key_is(r, "controls.background")) {
       snesrecomp_desktop_set_background_input(v);
     } else if (key_is(r, "system.slot")) {

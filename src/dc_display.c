@@ -1,5 +1,5 @@
 /*
- * Demon's Crest — widescreen presentation geometry.
+ * Crash Dummies — widescreen presentation geometry.
  *
  * Pure math over the framework's SnesDisplayAspect helpers; nothing here
  * touches guest state. See docs/WIDESCREEN_PLAN.md.
@@ -74,6 +74,25 @@ void DcDisplay_ComputeViewport(int source_width, int source_height,
     SnesDisplayAspect_ComputeViewport(
         source_width, source_height, drawable_width, drawable_height,
         display_aspect, ignore_aspect, integer_scale, viewport);
+    /* Widescreen path: never present larger than 1080p (1920x1080). The
+     * SNES field itself stays ~16:9 x 224; this only caps the window blit.
+     * Used by desktop and by the Switch merge of this same module. */
+    if (viewport && DcDisplay_IsWidescreenEnabled()) {
+        const int max_w = 1920, max_h = 1080;
+        if (viewport->width > max_w || viewport->height > max_h) {
+            double sx = (double)max_w / (double)viewport->width;
+            double sy = (double)max_h / (double)viewport->height;
+            double s = sx < sy ? sx : sy;
+            int nw = ((int)(viewport->width * s)) & ~1;
+            int nh = ((int)(viewport->height * s)) & ~1;
+            if (nw < 2) nw = 2;
+            if (nh < 2) nh = 2;
+            viewport->x += (viewport->width - nw) / 2;
+            viewport->y += (viewport->height - nh) / 2;
+            viewport->width = nw;
+            viewport->height = nh;
+        }
+    }
 }
 
 int DcDisplay_GetWindowBaseWidth(int frame_width,

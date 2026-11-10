@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 /*
- * Host-only display controls for Demon's Crest. None of this modifies
+ * Host-only display controls for The Incredible Crash Dummies. None of this modifies
  * emulated SNES state: with the widescreen mod off, every function here
  * resolves to the authentic 256x224, 4:3 presentation.
  *

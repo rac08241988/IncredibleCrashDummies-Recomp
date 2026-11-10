@@ -7,7 +7,7 @@
 An unofficial Windows PC port of **The Incredible Crash Dummies** (SNES, USA),
 built on the [snesrecomp](https://github.com/magnopaz/snesrecomp) framework
 from the [Demon's Crest SNESRecomp](https://github.com/rac08241988/DemonsCrestSNESRecomp)
-v1.1.0 template. Early release (v0.1.1): it boots, plays, and has the full
+v1.1.0 template. Release v0.2.0 adds opt-in 16:9 widescreen (see below). It boots, plays, and has the full
 Options menu, but see [Known limitations](#known-limitations).
 
 ![Gameplay](docs/screenshots/gameplay.png)
@@ -22,13 +22,18 @@ Options menu, but see [Known limitations](#known-limitations).
 - Full shader set: the complete libretro slang preset pack (258 entries) run
   through librashader, plus the libretro GLSL presets. CRT, scanline, LCD,
   smoothing and xBR/xBRZ scalers. **Shaders only work on Vulkan and OpenGL.**
-- 120 Hz motion option, save states (10 quick slots plus a browser), rewind,
+- Opt-in **16:9 widescreen** in Options > Video (default Off keeps 4:3 with side art).
+  16:9 shows extra stage beside the original 256-column view. Title, menus and
+  any scene whose edges would glitch fall back to side art. The widescreen path
+  is capped at 1080p and 60 fps.
+- 120 Hz motion option (game logic stays at 60 Hz; widescreen locks presentation
+  to 60 fps), save states (10 quick slots plus a browser), rewind,
   turbo, recording, fullscreen and window scaling.
 - Xbox / XInput controller support with a positional SNES layout.
 
 ## Play on Windows (no coding needed)
 
-1. Download `IncredibleCrashDummies-SNESRecomp-windows-x64-v0.1.1.zip` from the
+1. Download `IncredibleCrashDummies-SNESRecomp-windows-x64-v0.2.0.zip` from the
    [Releases](https://github.com/rac08241988/IncredibleCrashDummies-Recomp/releases)
    page and unzip it anywhere.
 2. Open `IncredibleCrashDummiesSNESRecomp.exe`.
@@ -115,7 +120,11 @@ The project owner's PC:
 - **Runs on the interpreter for now.** No native (ahead-of-time) code is
   generated yet: every routine runs on the framework's interpreter tier. It
   plays, but it is not the fast path yet.
-- **No widescreen yet.** It is planned.
+- **Widescreen is opt-in.** Options > Video > Widescreen defaults to Off (4:3
+  with side art). 16:9 widens stage gameplay; title, menus and any scene whose
+  edges would show garbage tiles stay on side art. Sprites the original game
+  culls at the 256-column edge can still pop in at the new edges (there is no
+  generated-code cull hook for this title yet).
 - **No battery save.** The cartridge has no SRAM (the game uses passwords),
   so there is no in-game save to keep; use the passwords or save states.
   Save states come from the template and have not been fully re-tested here.

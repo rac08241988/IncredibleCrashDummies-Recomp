@@ -1,5 +1,6 @@
 /* See dc_interp.h. */
 #include "dc_interp.h"
+#include "dc_display.h"
 #include "snes/ppu.h"
 #include <math.h>
 #include <stdio.h>
@@ -82,6 +83,8 @@ static double forced_hz(void) {
 }
 
 double DcInterp_PresentationHz(double display_refresh) {
+  /* Widescreen path stays locked to the 60 Hz guest clock (Switch merge cap). */
+  if (DcDisplay_IsWidescreenEnabled()) return 0;
   if (g_mode == kDcMotion_Off) return 0;
   double f = forced_hz();
   if (f >= 100.0) return f;

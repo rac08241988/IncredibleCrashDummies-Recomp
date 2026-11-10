@@ -48,8 +48,48 @@
 #define SNES_GAME_VERSION "dev"
 #endif
 
+static void DcPrepareFrame(int drawable_w, int drawable_h, int *w, int *h) {
+    SnesDisplayAspect aspect = SnesDisplayAspect_Clamp(g_config.display_aspect);
+    *w = DcDisplay_IsWidescreenEnabled()
+             ? DcDisplay_ComputeFrameWidth(g_dc_aspect, drawable_w,
+                                           drawable_h, aspect)
+             : 256;
+    *h = DC_FRAME_HEIGHT;
+}
+
 static void DcBeginFrame(unsigned number) {
     DcOptions_OnSimFrame(number);
+    DcWidescreenConfigureFrame();
+}
+
+static void DcEndFrame(const uint8_t *field, unsigned number) {
+    (void)field;
+    (void)number;
+    DcWidescreenAfterRaster();
+}
+
+static int DcWindowWidth(int frame_width) {
+    return DcDisplay_GetWindowBaseWidth(
+        frame_width, SnesDisplayAspect_Clamp(g_config.display_aspect));
+}
+
+static void DcComputeViewport(int frame_w, int frame_h, int drawable_w,
+                              int drawable_h, SnesDisplayViewport *viewport) {
+    DcDisplay_ComputeViewport(
+        frame_w, frame_h, drawable_w, drawable_h,
+        SnesDisplayAspect_Clamp(g_config.display_aspect),
+        g_config.ignore_aspect_ratio, false, viewport);
+}
+
+static const char *const kCdWidescreenLabels[] = {"Off", "16:9"};
+static int g_cd_ws_seeded = -1;
+static int DcLauncherWidescreenGet(void) {
+    g_cd_ws_seeded = DcWidescreenSetting_Get();
+    return g_cd_ws_seeded;
+}
+static void DcLauncherWidescreenSet(int index) {
+    if (index != g_cd_ws_seeded) DcWidescreenSetting_Set(index);
+    g_cd_ws_seeded = index;
 }
 
 static const SnesDesktopHostGame kGameHost = {
@@ -63,13 +103,15 @@ static const SnesDesktopHostGame kGameHost = {
     .build_version       = SNES_GAME_VERSION,
     .game_info           = &kGameInfo,
     .num_players         = 1,
-    /* The widescreen mod drives [Graphics] Widescreen before launch; the
-     * launcher toggle offers the same switch. Default off: the frame stays
-     * 256 wide (the mods page decides, not this file). */
-    /* No widescreen for this title yet (the Demon's Crest hooks are
-     * game-specific); the frame stays 256 wide. */
-    .widescreen_supported = 0,
+    /* Opt-in 16:9 widescreen (default off = 4:3 with side art). */
+    .widescreen_supported = 1,
+    .native_widescreen   = 1,
+    .prepare_frame       = DcPrepareFrame,
     .begin_sim_frame     = DcBeginFrame,
+    .end_sim_frame       = DcEndFrame,
+    .window_base_width   = DcWindowWidth,
+    .window_base_height  = DcDisplay_GetWindowBaseHeight,
+    .compute_viewport    = DcComputeViewport,
     /* The Incredible Crash Dummies (USA) has no SRAM (header cart type $00,
      * SRAM size $00): progress uses the game's password system, not a
      * battery. Leave the SRAM path NULL so the launcher does not offer a
@@ -92,6 +134,15 @@ static const SnesDesktopHostGame kGameHost = {
      * row open the launcher mid-game; renderer / audio-rate / mod changes
      * restart and resume at the same moment. */
     .in_game_launcher    = 1,
+    .aspect_labels        = kCdWidescreenLabels,
+    .num_aspect_labels    = 2,
+    .aspect_setting_label = "Widescreen",
+    .aspect_setting_help  =
+        "Off keeps the 4:3 picture with side art. 16:9 shows extra stage "
+        "beside the original view; scenes whose edges would glitch stay on "
+        "side art. Capped at 1080p and 60 fps.",
+    .aspect_get           = DcLauncherWidescreenGet,
+    .aspect_set           = DcLauncherWidescreenSet,
 };
 
 #ifndef __ANDROID__
